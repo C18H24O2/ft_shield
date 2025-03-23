@@ -14,18 +14,23 @@ BONUS ?= 0
 
 CC := clang
 CFLAGS := -Wall -Wextra -Werror
-LDFLAGS :=
+LDFLAGS := -static
 
 NASM := nasm
 NASMFLAGS := -f elf64
 
 SRC_DIR := src
 BUILD_DIR := build
+INC_DIR := include
 OBJ_DIR := $(BUILD_DIR)/obj
+
+CFLAGS += -I$(INC_DIR)
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g3 -gdwarf-3 -ggdb
 NASMFLAGS += -g
+else
+CLFAGS += -Os -s
 endif
 
 include sources.mk
@@ -38,6 +43,7 @@ all: $(NAME)
 
 $(NAME): $(OBJS) $(DEPFILES)
 	$(CC) $(LDFLAGS) -o $@ $^
+	strip $@ -s
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
