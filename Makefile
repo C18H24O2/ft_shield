@@ -34,16 +34,6 @@ OBJS := $(patsubst %.c,%.o,$(patsubst %.s,%.o,$(patsubst %.cpp,%.o,$(SRCS))))
 SRCS := $(addprefix $(SRC_DIR)/,$(SRCS))
 OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
 
-LIB_DIR := third-party
-LIBRARIES += libft
-libft_URL := https://codeberg.org/27/libft.git
-libft_DIR := $(LIB_DIR)/libft
-libft_DEP := $(libft_DIR)/build/output/libft.a
-CFLAGS += -I$(libft_DIR)/include -I$(libft_DIR)/includes
-LDFLAGS += $(libft_DEP)
-DEPFILES += $(libft_DEP)
-LDFLAGS += -lSDL2
-
 all: $(NAME)
 
 $(NAME): $(OBJS) $(DEPFILES)
@@ -61,19 +51,12 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(libft_DEP):
-	make -C $(libft_DIR) -j$(shell nproc)
-
-oclean:
+clean:
 	rm -rf $(BUILD_DIR)
 
-clean: oclean
-	make -C $(libft_DIR) clean
-
-fclean: oclean
-	make -C $(libft_DIR) fclean
+fclean: clean
 	rm -rf $(NAME)
 
 re: fclean all
 
-.PHONY: all clean oclean fclean re
+.PHONY: all clean fclean re
