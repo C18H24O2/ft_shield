@@ -26,6 +26,16 @@ OBJ_DIR := $(BUILD_DIR)/obj
 
 CFLAGS += -I$(INC_DIR)
 
+LOCAL_GLIBC ?= 0
+
+ifeq ($(LOCAL_GLIBC), 1)
+CFLAGS += -I"glibc_debug/include"
+LDFLAGS += -nostdlib -g -L"glibc_debug/lib" \
+	-Wl,--rpath="glibc_debug/lib" \
+	-Wl,--dynamic-linker="glibc_debug/lib/ld-linux-x86-64.so.2" \
+	-lpthread -lc -lquadmath -lgcc_eh -lgcc -ldl
+endif
+
 ifeq ($(DEBUG), 1)
 CFLAGS += -g3 -gdwarf-3 -ggdb
 NASMFLAGS += -g
@@ -42,8 +52,14 @@ OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
 all: $(NAME)
 
 $(NAME): $(OBJS) $(DEPFILES)
-	$(CC) $(LDFLAGS) -o $@ $^
+ifeq ($(LOCAL_GLIBC), 1)
+	$(CC) -o $@ "glibc_debug/lib/crt1.o" "glibc_debug/lib/crti.o" $^ "glibc_debug/lib/crtn.o" $(LDFLAGS)
+else
+	$(CC) -o $@ $^ $(LDFLAGS)
+endif
+ifeq ($(DEBUG), 0)
 	strip $@ -s
+endif
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)

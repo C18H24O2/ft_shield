@@ -1,4 +1,6 @@
 *.o
+/obfuscator-llvm
+/glibc_debug
 *.a
 *.out
 /ft_shield
