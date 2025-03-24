@@ -14,7 +14,7 @@ BONUS ?= 0
 
 CC := clang
 CFLAGS := -Wall -Wextra -Werror
-LDFLAGS := -static
+LDFLAGS :=
 
 NASM := nasm
 NASMFLAGS := -f elf64
@@ -37,7 +37,7 @@ LDFLAGS += -nostdlib -g -L"glibc_debug/lib" \
 endif
 
 ifeq ($(DEBUG), 1)
-CFLAGS += -g3 -gdwarf-3 -ggdb
+CFLAGS += -g3 -gdwarf-3
 NASMFLAGS += -g
 else
 CLFAGS += -Os -s
@@ -55,7 +55,7 @@ $(NAME): $(OBJS) $(DEPFILES)
 ifeq ($(LOCAL_GLIBC), 1)
 	$(CC) -o $@ "glibc_debug/lib/crt1.o" "glibc_debug/lib/crti.o" $^ "glibc_debug/lib/crtn.o" $(LDFLAGS)
 else
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) $(LDFLAGS) -o $@ $^
 endif
 ifeq ($(DEBUG), 0)
 	strip $@ -s

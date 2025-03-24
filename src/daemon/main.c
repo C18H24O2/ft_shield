@@ -6,13 +6,15 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:06:32 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/03/24 15:19:08 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/03/24 23:39:27 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield.h>
+#include <stdio.h>
 
 int	shield_daemon_main(void)
 {
+	puts("sex");
 	return (0);
 }
