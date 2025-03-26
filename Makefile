@@ -36,8 +36,10 @@ LDFLAGS += -nostdlib -g -L"glibc_debug/lib" \
 	-lpthread -lc -lquadmath -lgcc_eh -lgcc -ldl
 endif
 
+CFLAGS += $(EXTRA_CFLAGS)
+
 ifeq ($(DEBUG), 1)
-CFLAGS += -g3 -gdwarf-3
+CFLAGS += -g3 -gdwarf-3 -DSHIELD_DEBUG=1
 NASMFLAGS += -g
 else
 CLFAGS += -Os -s

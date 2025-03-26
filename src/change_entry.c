@@ -6,12 +6,13 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:04:47 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/03/23 03:35:45 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/03/25 14:21:26 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <elf.h>
 #include <shield.h>
+#include <shield/daemon.h>
 #include <string.h>
 #include <unistd.h>
 

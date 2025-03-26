@@ -15,6 +15,9 @@ echo >> $SRCS_MK
 for dir in $SRC_DIRS; do
 	for file in $(\find $dir -type f \( -name '*.c' -o -name '*.cpp' -o -name '*.s' \)); do
 		without_prefix=${file#$dir/}
+		if [[ $file == *.inc.c ]]; then
+			continue
+		fi
 		echo "SRCS += $without_prefix" >> $SRCS_MK
 	done
 done

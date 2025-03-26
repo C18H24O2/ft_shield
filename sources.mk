@@ -3,7 +3,8 @@
 
 SRCS += copy.c
 SRCS += daemon/main.c
+SRCS += daemon/daemonize.c
 SRCS += daemon/start.s
-SRCS += antidebug.c
 SRCS += main.c
 SRCS += change_entry.c
+SRCS += autorun.c
