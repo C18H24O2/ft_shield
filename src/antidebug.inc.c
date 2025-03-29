@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:42:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/03/25 23:22:36 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/03/29 18:22:54 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ static inline int	shield_detect_parent(void)
 		res = readlink(parent, buf, PATH_MAX);
 		if (res < 0)
 			break ;
-		DEBUG("antidebug/parent readlink res: '%s' %zu\n", buf, res);
+		DEBUG("antidebug/parent readlink res: '%s' %d\n", buf, res);
 		memset(parent, 0, sizeof(parent));
 		memcpy(parent, buf, res);
 	}
