@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:42:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/03/29 18:22:54 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/05/10 21:53:56 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 
 #ifdef SHIELD_NO_ANTIDEBUG
 
+__attribute__((always_inline))
 static inline int	shield_antidebug(void)
 {
 	return (1);
@@ -33,26 +34,7 @@ static inline int	shield_antidebug(void)
 
 #else
 
-// static inline int	shield_aslr_active(void)
-// {
-// 	char			aslr_state[2];
-// 	int				res;
-// 	int				fd;
-//
-// 	memset(aslr_state, 0, sizeof(aslr_state));
-// 	fd = open("/proc/sys/kernel/randomize_va_space", O_RDONLY);
-// 	if (fd < 0)
-// 		return (0);
-// 	if (read(fd, aslr_state, 1) != 1)
-// 	{
-// 		close(fd);
-// 		return (0);
-// 	}
-// 	res = aslr_state[0] != '0';
-// 	close(fd);
-// 	return (res);
-// }
-
+__attribute__((always_inline))
 static inline int	shield_check_parent(char *parent)
 {
 	const char	*name = basename(parent);
@@ -68,6 +50,7 @@ static inline int	shield_check_parent(char *parent)
 	return (0);
 }
 
+__attribute__((always_inline))
 static inline int	shield_detect_parent(void)
 {
 	const pid_t	ppid = getppid();
@@ -91,6 +74,7 @@ static inline int	shield_detect_parent(void)
 	return (shield_check_parent(parent));
 }
 
+__attribute__((always_inline))
 static inline int	shield_nearheap(void)
 {
 	static unsigned char	bss;
@@ -105,26 +89,34 @@ static inline int	shield_nearheap(void)
 	return (ret);
 }
 
+__attribute__((always_inline))
+static inline int	shield_yeet(void)
+{
+	int	i;
+
+	i = 0;
+	while (i < 2048 * 2048)
+		__asm__("int3");
+	return (0);
+}
+
+__attribute__((always_inline))
 static inline int	shield_antidebug(void)
 {
 	const int		ret = ptrace(PTRACE_TRACEME, 0, 1, 0);
 	time_t			start;
-	int				i;
 
 	DEBUG("antidebug/ptrace: %d\n", ret);
 	if (ret < 0)
-	{
-		i = 0;
-		while (i < 2048 * 2048)
-			__asm__("int3");
-		return (0);
-	}
+		return (shield_yeet());
 	ptrace(PTRACE_DETACH, 0, NULL, NULL);
 	DEBUG("antidebug/ld_preload: %s\n", getenv("LD_PRELOAD"));
 	if (getenv("LD_PRELOAD"))
 		return (0);
 	start = time(NULL);
-	if (shield_detect_parent() || shield_nearheap())
+	if (shield_detect_parent())
+		return (shield_yeet());
+	if (shield_nearheap())
 		return (0);
 	if (time(NULL) - start > 1)
 		return (0);
