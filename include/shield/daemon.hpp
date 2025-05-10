@@ -1,33 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   daemon.h                                           :+:      :+:    :+:   */
+/*   daemon.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
+/*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 14:20:31 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/03/29 19:24:40 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/05/10 21:50:44 by lvincent         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef DAEMON_H
-# define DAEMON_H
+#pragma once
 
-enum e_client_state
-{
-	CLIENT_STATE_CONNECTED = 0,
-	CLIENT_STATE_AUTHENTICATED,
-	CLIENT_STATE_SHELL,
-};
-
-typedef struct s_client
-{
-	int					fd;
-	enum e_client_state	state;
-}	t_client;
+#include <ctime>
 
 void	shield_daemonize(void);
 void	shield_daemon_start(void);
 int		shield_daemon_main(void);
-
-#endif // DAEMON_H
