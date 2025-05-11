@@ -13,7 +13,7 @@ DEBUG ?= 0
 BONUS ?= 0
 
 CC := clang
-CFLAGS := -Wall -Wextra -Werror
+CFLAGS := -Wall -Wextra -Werror -nostdlib
 
 CXX := clang++
 CXXFLAGS := $(CFLAGS)
@@ -21,7 +21,7 @@ CXXFLAGS := $(CFLAGS)
 NASM := nasm
 NASMFLAGS := -f elf64
 
-LDFLAGS :=
+LDFLAGS := -nostdlib
 
 SRC_DIR := src
 BUILD_DIR := build

