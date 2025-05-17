@@ -4,6 +4,7 @@
 SRCS += autorun.c
 SRCS += change_entry.c
 SRCS += copy.c
+SRCS += daemon/DaemonServer.cpp
 SRCS += daemon/daemonize.c
 SRCS += daemon/DaemonServer.cpp
 SRCS += daemon/main.c
