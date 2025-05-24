@@ -1,23 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   stddef.h                                           :+:      :+:    :+:   */
+/*   test.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/05/10 23:56:57 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/24 18:44:18 by kiroussa         ###   ########.fr       */
+/*   Created: 2025/05/24 17:11:51 by kiroussa          #+#    #+#             */
+/*   Updated: 2025/05/24 18:28:42 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef STDDEF_H
-# define STDDEF_H
+#include <stdlib.h>
+#include <unistd.h>
 
-# define NULL ((void *)0)
-
-typedef unsigned long	size_t;
-typedef long			ssize_t;
-
-typedef unsigned		mode_t;
-
-#endif // STDDEF_H
+int	main(int argc, char **argv)
+{
+	write(STDERR_FILENO, "hello world\n", 12);
+	exit(1);
+	return (0);
+}

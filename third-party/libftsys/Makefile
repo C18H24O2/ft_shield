@@ -6,7 +6,7 @@
 #    By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/10 23:59:16 by kiroussa          #+#    #+#              #
-#    Updated: 2025/05/11 04:42:07 by kiroussa         ###   ########.fr        #
+#    Updated: 2025/05/24 18:13:07 by kiroussa         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,8 +29,15 @@ SRCS := $(addprefix $(SRC_DIR)/,$(SRCS))
 OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
 
 CC := clang
-CFLAGS := -Wall -Wextra -Werror -nostdlib
+CFLAGS := -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -nostdlib -O2 -g3
 CFLAGS += -I$(INC_DIR)
+
+NASM := nasm
+NASMFLAGS := -f elf64
+
+CXX := clang++
+CXXFLAGS := -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -nostdlib -O2 -g3
+CXXFLAGS += -I$(INC_DIR)
 
 AR := ar
 ARFLAGS := rcs
@@ -46,11 +53,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(NASM) $(NASMFLAGS) -o $@ $<
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(OBJ_DIR)

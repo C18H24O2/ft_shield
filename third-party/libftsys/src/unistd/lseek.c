@@ -1,23 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   stddef.h                                           :+:      :+:    :+:   */
+/*   lseek.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/05/10 23:56:57 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/24 18:44:18 by kiroussa         ###   ########.fr       */
+/*   Created: 2025/05/24 18:54:31 by kiroussa          #+#    #+#             */
+/*   Updated: 2025/05/24 18:54:57 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef STDDEF_H
-# define STDDEF_H
+#include <unistd.h>
+#include <sys/syscall.h>
 
-# define NULL ((void *)0)
-
-typedef unsigned long	size_t;
-typedef long			ssize_t;
-
-typedef unsigned		mode_t;
-
-#endif // STDDEF_H
+off_t	lseek(int fd, off_t offset, int whence)
+{
+	return (syscall(SYS_lseek, fd, offset, whence));
+}

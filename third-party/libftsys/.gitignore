@@ -1,0 +1,6 @@
+development.mk
+*.o
+*.a
+*.out
+*.so
+/test/test

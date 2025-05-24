@@ -1,23 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   stddef.h                                           :+:      :+:    :+:   */
+/*   read.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/05/10 23:56:57 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/24 18:44:18 by kiroussa         ###   ########.fr       */
+/*   Created: 2025/05/24 18:40:39 by kiroussa          #+#    #+#             */
+/*   Updated: 2025/05/24 19:01:10 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef STDDEF_H
-# define STDDEF_H
+#include <stddef.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
-# define NULL ((void *)0)
-
-typedef unsigned long	size_t;
-typedef long			ssize_t;
-
-typedef unsigned		mode_t;
-
-#endif // STDDEF_H
+ssize_t	read(int fd, void *buf, size_t count)
+{
+	if (!buf || fd < 0)
+		return (-1);
+	return (syscall(SYS_read, fd, buf, count));
+}
