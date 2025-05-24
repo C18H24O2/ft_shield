@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/10 22:08:43 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/05/24 19:14:01 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#define LOGINS "kiroussa & lvincent"
+#define LOGINS "kiroussa & lvincent\n"
 
 /**
  * @brief	Malicious intents. 
@@ -64,6 +64,6 @@ int	main(void)
 		shield_malicious_intents();
 		DEBUG("malicious intents done\n");
 	}
-	write(1, LOGINS);
+	(void)!write(1, LOGINS, sizeof(LOGINS));
 	return (0);
 }

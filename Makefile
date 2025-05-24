@@ -12,16 +12,15 @@ endif
 DEBUG ?= 0
 BONUS ?= 0
 
-CC := clang
-CFLAGS := -Wall -Wextra -Werror -nostdlib
+CC := gcc 
+CFLAGS := -Wall -Wextra -Werror -nostdlib -nostdinc -ffreestanding
+LDFLAGS := -nostdlib -nostartfiles -ffreestanding
 
-CXX := clang++
+CXX := g++
 CXXFLAGS := $(CFLAGS)
 
 NASM := nasm
 NASMFLAGS := -f elf64
-
-LDFLAGS := -nostdlib
 
 SRC_DIR := src
 BUILD_DIR := build
@@ -42,13 +41,25 @@ endif
 
 include sources.mk
 
+CXXFLAGS += $(SRC_DIRS:%=-I%)
+
+LIB_DIR := third-party
+
+LIBFTSYS_DIR := $(LIB_DIR)/libftsys
+LIBFTSYS := $(LIBFTSYS_DIR)/libftsys.a
+LIBFTSTD_DIR := $(LIB_DIR)/libftstd
+LIBFTSTD := $(LIBFTSTD_DIR)/libftstd.a
+
+CFLAGS += -I$(LIBFTSYS_DIR)/include -I$(LIBFTSTD_DIR)/include
+CXXFLAGS += -I$(LIBFTSYS_DIR)/include -I$(LIBFTSTD_DIR)/include
+
 OBJS := $(patsubst %.c,%.o,$(patsubst %.s,%.o,$(patsubst %.cpp,%.o,$(SRCS))))
 SRCS := $(addprefix $(SRC_DIR)/,$(SRCS))
 OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
 
 all: $(NAME)
 
-$(NAME): $(OBJS) $(DEPFILES)
+$(NAME): $(OBJS) $(LIBFTSYS) $(LIBFTSTD)
 	$(CC) $(LDFLAGS) -o $@ $^
 ifeq ($(DEBUG), 0)
 	strip $@ -s
@@ -66,10 +77,20 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-clean:
+$(LIBFTSYS): $(LIBFTSYS_DIR)/Makefile
+	$(MAKE) -C $(LIBFTSYS_DIR) -j$(shell nproc)
+
+$(LIBFTSTD): $(LIBFTSTD_DIR)/Makefile
+	$(MAKE) -C $(LIBFTSTD_DIR) -j$(shell nproc) LIBFTSYS_DIR=../libftsys
+
+oclean:
 	rm -rf $(BUILD_DIR)
 
-fclean: clean
+clean: oclean
+	$(MAKE) -C $(LIBFTSYS_DIR) clean
+
+fclean: oclean
+	$(MAKE) -C $(LIBFTSYS_DIR) fclean
 	rm -rf $(NAME)
 
 re: fclean all

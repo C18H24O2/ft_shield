@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/10 23:53:15 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/11 01:29:42 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/05/24 19:17:14 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,5 @@ typedef signed long		int64_t;
 typedef unsigned int	*uintptr_t;
 typedef int				*intptr_t;
 typedef long			pid_t;
-typedef unsigned long	off_t;
 
 #endif // STDINT_H

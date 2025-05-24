@@ -20,7 +20,4 @@ for dir in $SRC_DIRS; do
 		fi
 		echo "SRCS += $without_prefix" >> $SRCS_MK
 	done
-  for dir in $(\find $dir -type d | sort); do
-    echo "SRC_DIRS += $dir" >> $SRCS_MK
-  done
 done

@@ -6,11 +6,11 @@
 #    By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/10 23:59:16 by kiroussa          #+#    #+#              #
-#    Updated: 2025/05/24 21:47:25 by kiroussa         ###   ########.fr        #
+#    Updated: 2025/05/24 21:47:09 by kiroussa         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME = libftsys.a
+NAME = libftstd.a
 
 SRC_DIR := src
 OBJ_DIR := obj
@@ -41,6 +41,12 @@ CXXFLAGS += -I$(INC_DIR)
 
 AR := ar
 ARFLAGS := rcs
+
+LIBFTSYS_DIR := libftsys
+LIBFTSYS := $(LIBFTSYS_DIR)/libftsys.a
+
+CFLAGS += -I$(LIBFTSYS_DIR)/include
+CXXFLAGS += -I$(LIBFTSYS_DIR)/include
 
 all: $(NAME)
 

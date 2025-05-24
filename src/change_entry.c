@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:04:47 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/10 21:53:28 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/05/24 19:55:38 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,16 @@
 #include <unistd.h>
 
 void	_start(void);
+
+#ifndef ELF_BITNESS
+# define ELF_BITNESS 32
+# include "change_entry.c"
+# define ELF_BITNESS 64
+# include "change_entry.c"
+#else // ELF_BITNESS
+# define _APPEND(a, b) a##b
+# define APPEND(a, b) _APPEND(a, b)
+# define Elf(x) APPEND(APPEND(APPEND(Elf, ELF_BITNESS), _), x)
 
 static inline int	shield_change_entry32(int bin)
 {

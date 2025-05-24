@@ -9,3 +9,5 @@ SRCS += daemon/DaemonServer.cpp
 SRCS += daemon/main.c
 SRCS += daemon/start.s
 SRCS += main.c
+SRC_DIRS += src
+SRC_DIRS += src/daemon

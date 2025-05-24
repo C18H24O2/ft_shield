@@ -1,19 +1,20 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   daemon.hpp                                         :+:      :+:    :+:   */
+/*   string.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
+/*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/25 14:20:31 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/10 21:50:44 by lvincent         ###   ########.fr       */
+/*   Created: 2025/05/24 21:46:27 by kiroussa          #+#    #+#             */
+/*   Updated: 2025/05/24 21:46:34 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef STRING_H
+# define STRING_H
 
-#include <ctime>
+# include <stddef.h>
 
-void	shield_daemonize(void);
-void	shield_daemon_start(void);
-int		shield_daemon_main(void);
+size_t	strlen(const char *s);
+
+#endif // STRING_H
