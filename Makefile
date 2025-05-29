@@ -9,12 +9,19 @@ DEBUG := 1
 _ := $(shell bash gensources.sh sources.mk $(SRC_DIR))
 endif
 
+USE_LIBFTSYS := 0
+
 DEBUG ?= 0
 BONUS ?= 0
 
 CC := gcc 
-CFLAGS := -Wall -Wextra -Werror -nostdlib -nostdinc -ffreestanding
-LDFLAGS := -nostdlib -nostartfiles -ffreestanding
+CFLAGS := -Wall -Wextra -Werror
+LDFLAGS :=
+
+ifeq ($(USE_LIBFTSYS), 1)
+CFLAGS += -nostdlib -nostdinc -ffreestanding
+LDFLAGS += -nostdlib -nostartfiles -ffreestanding
+endif
 
 CXX := g++
 CXXFLAGS := $(CFLAGS)
@@ -50,8 +57,10 @@ LIBFTSYS := $(LIBFTSYS_DIR)/libftsys.a
 LIBFTSTD_DIR := $(LIB_DIR)/libftstd
 LIBFTSTD := $(LIBFTSTD_DIR)/libftstd.a
 
+ifeq ($(USE_LIBFTSYS), 1)
 CFLAGS += -I$(LIBFTSYS_DIR)/include -I$(LIBFTSTD_DIR)/include
 CXXFLAGS += -I$(LIBFTSYS_DIR)/include -I$(LIBFTSTD_DIR)/include
+endif
 
 OBJS := $(patsubst %.c,%.o,$(patsubst %.s,%.o,$(patsubst %.cpp,%.o,$(SRCS))))
 SRCS := $(addprefix $(SRC_DIR)/,$(SRCS))
@@ -59,7 +68,11 @@ OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
 
 all: $(NAME)
 
+ifeq ($(USE_LIBFTSYS), 1)
 $(NAME): $(OBJS) $(LIBFTSYS) $(LIBFTSTD)
+else
+$(NAME): $(OBJS)
+endif
 	$(CC) $(LDFLAGS) -o $@ $^
 ifeq ($(DEBUG), 0)
 	strip $@ -s
@@ -87,10 +100,10 @@ oclean:
 	rm -rf $(BUILD_DIR)
 
 clean: oclean
-	$(MAKE) -C $(LIBFTSYS_DIR) clean
+	$(MAKE) -C $(LIBFTSTD_DIR) clean LIBFTSYS_DIR=../libftsys
 
 fclean: oclean
-	$(MAKE) -C $(LIBFTSYS_DIR) fclean
+	$(MAKE) -C $(LIBFTSTD_DIR) fclean LIBFTSYS_DIR=../libftsys
 	rm -rf $(NAME)
 
 re: fclean all

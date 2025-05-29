@@ -6,7 +6,7 @@
 #    By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/10 23:59:16 by kiroussa          #+#    #+#              #
-#    Updated: 2025/05/24 21:47:25 by kiroussa         ###   ########.fr        #
+#    Updated: 2025/05/25 02:01:37 by kiroussa         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -59,10 +59,12 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-clean:
+oclean:
 	rm -rf $(OBJ_DIR)
 
-fclean: clean
+clean: oclean
+
+fclean: oclean
 	rm -rf $(NAME)
 
 re: fclean all

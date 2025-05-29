@@ -6,11 +6,10 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:22:51 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/03/25 14:22:00 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/05/25 16:47:11 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <errno.h>
 #include <fcntl.h>
 #include <shield.h>
 #include <stdbool.h>
