@@ -6,7 +6,7 @@
 #    By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/10 23:59:16 by kiroussa          #+#    #+#              #
-#    Updated: 2025/05/25 02:01:17 by kiroussa         ###   ########.fr        #
+#    Updated: 2025/05/30 20:24:38 by kiroussa         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,14 +29,14 @@ SRCS := $(addprefix $(SRC_DIR)/,$(SRCS))
 OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
 
 CC := gcc
-CFLAGS := -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -nostdlib -nostdinc -O2 -g3
+CFLAGS := -Wall -Wextra -Werror -ffreestanding -nostdlib -nostdinc -O2 -g3
 CFLAGS += -I$(INC_DIR)
 
 NASM := nasm
 NASMFLAGS := -f elf64
 
 CXX := g++
-CXXFLAGS := -Wall -Wextra -Werror -ffreestanding -fno-stack-protector -nostdlib -nostdinc -O2 -g3
+CXXFLAGS := -Wall -Wextra -Werror -ffreestanding -nostdlib -nostdinc -O2 -g3
 CXXFLAGS += -I$(INC_DIR)
 
 AR := ar

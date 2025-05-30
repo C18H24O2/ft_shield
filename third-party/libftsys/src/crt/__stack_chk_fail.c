@@ -1,30 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   exit.c                                             :+:      :+:    :+:   */
+/*   __stack_chk_fail.c                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/05/24 17:15:31 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/27 21:47:49 by kiroussa         ###   ########.fr       */
+/*   Created: 2025/05/27 21:52:46 by kiroussa          #+#    #+#             */
+/*   Updated: 2025/05/30 20:21:51 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#define _FTSYS_SOURCE
-#include <stdlib.h>
-#include <sys/syscall.h>
+#include <stdio.h>
 #include <unistd.h>
 
-void	_exit(int status)
-{
-	syscall(SYS_exit, status);
-}
+#define STACK_SMASH	"*** stack smashing detected ***: unspecified error\n"
 
-void	exit(int status)
+__attribute__((no_return))
+void	__stack_chk_fail(void)
 {
-	atexit_run_all();
-	_exit(status);
+	write(1, STACK_SMASH, sizeof(STACK_SMASH));
+	exit(1);
+	__builtin_unreachable();
 }
-
-void	_Exit(int status)
-		__attribute__((weak, alias("_exit")));
