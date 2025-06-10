@@ -1,0 +1,9 @@
+*.o
+*.a
+*.so
+*.out
+/.direnv/
+*.swp
+/.cache/
+compile_commands.json
+

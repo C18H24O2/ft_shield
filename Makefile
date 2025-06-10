@@ -14,7 +14,7 @@ USE_LIBFTSYS := 0
 DEBUG ?= 0
 BONUS ?= 0
 
-CC := gcc 
+CC := gcc
 CFLAGS := -Wall -Wextra -Werror
 LDFLAGS :=
 
