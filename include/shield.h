@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:45:19 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/03/25 23:21:44 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/06/10 03:27:44 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 #  define SHIELD_DEBUG 0
 #  define DEBUG(fmt, ...)
 # else
-#  define DEBUG(fmt, ...) printf("[DEBUG] " fmt __VA_OPT__(,) __VA_ARGS__)
+#  define DEBUG(fmt, ...) printf("[DEBUG] %s: " fmt, __func__ __VA_OPT__(,) __VA_ARGS__)
 # endif // !SHIELD_DEBUG
 
 int		shield_copy(void);
