@@ -23,7 +23,7 @@ enum class ClientState
 
 typedef struct
 {
-	struct pollfd pollfd;
+	struct pollfd* pollfd;
 	ClientState	state;
 	time_t last_seen;
 }	Client;
@@ -31,8 +31,10 @@ typedef struct
 class DaemonServer
 {
 	private:
-		Client client_list[FT_SHIELD_MAX_CLIENTS + 1];	//1 added for the server itself
-		int client_id;											//client_list[client_id] is where the next client should be put in the list, -1 is no clients being accepted
+		struct pollfd pollfd_array[FT_SHIELD_MAX_CLIENTS + 1];	// 1 extra added for the server socket
+		Client client_list[FT_SHIELD_MAX_CLIENTS];
+		int client_id;											// client_list[client_id] is where the next client should be put in the list, -1 is no clients being accepted
+		int current_conn;										// number of currently connected clients
 		char password_hash[32];
 
 	public:
