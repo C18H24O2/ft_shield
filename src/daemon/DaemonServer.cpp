@@ -104,13 +104,15 @@ void DaemonServer::run()
 				if (i == 0)
 				{
 					printf("PLACEHOLDER POLL");		// accept a new client
-					continue;
 				}
 				else
 				{
 					printf("PLACEHOLDER POLL");		// received message from client
-					continue;
 				}
+			}
+			if (i != 0)
+			{
+				printf("PLACEHOLDER POLL");			//  for each fd, we check what time it was since last update, and set any inactive client to be disconnected
 			}
 		}
 

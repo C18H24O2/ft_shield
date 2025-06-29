@@ -11,14 +11,14 @@
 #define FT_SHIELD_PORT 4242
 #define FT_SHIELD_PORT_STRING "4242"
 #define FT_SHIELD_SHELL "/bin/sh" 
-#define FT_SHIELD_TIMEOUT 60		// time in Seconds before a client gets dropped (from idling in auth)
+#define FT_SHIELD_TIMEOUT 60		// time in Seconds before a client gets dropped (from idling in auth )
 
 enum class ClientState
 {
 	CONNECTED,		// Initial state, awaiting authentication
 	AUTHENTICATED,  // Authenticated, awaiting command
 	SHELL,			// Special state where the client is directly connected to the shell
-	DISCONNECTED,	// Client has been disconnected (internal management state)
+	DISCONNECTED,	// Client has been set to be disconnected
 };
 
 typedef struct
