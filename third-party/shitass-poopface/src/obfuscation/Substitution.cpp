@@ -35,7 +35,7 @@ static cl::opt<bool>
 static cl::opt<int>
     ObfTimes("sub_loop",
              cl::desc("Choose how many time the -sub pass loops on a function"),
-             cl::value_desc("number of times"), cl::init(1), cl::Optional);
+             cl::value_desc("number of times"), cl::init(4), cl::Optional);
 
 // Stats
 STATISTIC(Add, "Add substitued");

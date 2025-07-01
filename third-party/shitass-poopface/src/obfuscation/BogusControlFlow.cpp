@@ -112,7 +112,7 @@ STATISTIC(FinalNumBasicBlocks,
 using namespace llvm;
 
 // Options for the pass
-const int defaultObfRate = 30, defaultObfTime = 1;
+const int defaultObfRate = 70, defaultObfTime = 4;
 
 static cl::opt<bool>
     BogusControlFlowFlag("bcf", cl::init(true),

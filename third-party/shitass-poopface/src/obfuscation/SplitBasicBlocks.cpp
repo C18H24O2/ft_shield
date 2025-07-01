@@ -25,7 +25,7 @@ STATISTIC(Split, "Basicblock splitted");
 static cl::opt<bool> SplitFlag("split", cl::init(true),
                                cl::desc("Enable basic block splitting"));
 
-static cl::opt<int> SplitNum("split_num", cl::init(2),
+static cl::opt<int> SplitNum("split_num", cl::init(4),
                              cl::desc("Split <split_num> time each BB"));
 
 namespace {
