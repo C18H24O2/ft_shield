@@ -12,16 +12,33 @@ DaemonServer::DaemonServer(char password_hash[32])
 {
 	memcpy(this->password_hash, password_hash, 32);
 	if (FT_SHIELD_MAX_CLIENTS >= 1)
-		this->client_id = 0;
+		this->should_accept = true;
 	else
-		this->client_id = -1;
+		this->should_accept = false;
+
+	// Initialize both arrays to unused states
 	bzero(this->pollfd_array, sizeof(pollfd) * (FT_SHIELD_MAX_CLIENTS + 1));
+	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS + 1; i++)
+	{
+		this->pollfd_array[i].fd = -1;		// -1 means unused as poll() man specifies it ignores pollfd if fd is -1
+		this->pollfd_array[i].events = 0;
+		this->pollfd_array[i].revents = 0;
+
+	}
+	bzero(this->client_list, sizeof(Client) * FT_SHIELD_MAX_CLIENTS);
+	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)
+	{
+		this->client_list[i].pollfd = &this->pollfd_array[i + 1];
+		this->client_list[i].state = ClientState::UNUSED;
+		this->client_list[i].last_seen = 0;
+	}
 	this->current_conn = 0;
 
 	struct sigaction sa;
 	bzero(&sa, sizeof(sa));
 	sa.sa_handler = SIG_IGN;
 
+	// yes this is terrible
 	for (size_t sig = 1; sig < NSIG; ++sig)
 	{
 		if (sig == SIGKILL || sig == SIGSTOP || sig == SIGSEGV || sig == SIGFPE || sig == SIGILL || sig == SIGBUS || sig == SIGTRAP)
@@ -38,7 +55,7 @@ int DaemonServer::init()
 
 	memset(&hints, 0, sizeof(addrinfo));
 
-	hints.ai_family = AF_UNSPEC;
+	hints.ai_family = AF_INET6;						// 
 	hints.ai_socktype = SOCK_STREAM;
 	protoent *proto_struct = getprotobyname("TCP");
 	if (proto_struct == NULL)
@@ -49,13 +66,19 @@ int DaemonServer::init()
 	int status = getaddrinfo(NULL, FT_SHIELD_PORT_STRING, &hints, &servinfo);
 	if (status != 0)
 		return 1;
-	int opt = 1;
+	const int opt_on = 1;
+	const int opt_off = 0;
 	for (tmp = servinfo; tmp != NULL; tmp = tmp->ai_next)
 	{
 		this->pollfd_array[0].fd = socket(tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol);
 		if (this->pollfd_array[0].fd== -1)
 			continue;
-		if (setsockopt(this->pollfd_array[0].fd, SOL_SOCKET, SO_REUSEADDR,&opt, sizeof(opt)) == -1)
+		if (setsockopt(this->pollfd_array[0].fd, SOL_SOCKET, SO_REUSEADDR, &opt_on, sizeof(opt_on)) == -1)
+		{
+			close(this->pollfd_array[0].fd);
+			continue;
+		}
+		if (setsockopt(this->pollfd_array[0].fd, IPPROTO_IPV6, IPV6_V6ONLY, &opt_off, sizeof(opt_off)) == -1)
 		{
 			close(this->pollfd_array[0].fd);
 			continue;
@@ -86,6 +109,81 @@ int DaemonServer::init()
 	}
 
 	return 0;
+}
+
+void DaemonServer::accept_new_client()
+{
+	// discarding sockaddr for now, can be added later
+	int client_fd = accept(this->pollfd_array[0].fd, NULL, NULL);
+	
+	if (client_fd == -1)
+	{
+		// no specific behavior for now
+		return ;
+	}
+
+	if (this->current_conn >= FT_SHIELD_MAX_CLIENTS || this->should_accept == false)	// may add a message to the client later
+	{
+		close(client_fd);
+		return ;
+	}
+
+	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)
+	{
+		if (this->client_list[i].state == ClientState::UNUSED)
+		{
+			this->pollfd_array[i + 1].fd = client_fd;
+			this->client_list[i].state = ClientState::CONNECTED;
+			time(&this->client_list[i].last_seen);
+			this->pollfd_array[i + 1].events = POLLIN | POLLOUT;	// we want to receive data and send data
+			this->current_conn++;
+			return ;
+		}
+	}
+}
+
+void DaemonServer::clear_client(Client *client)
+{
+	if (client == NULL)
+		return ;
+
+	client->pollfd->fd = -1;
+	client->pollfd->events = 0;
+
+	client->state = ClientState::UNUSED;
+	client->last_seen = 0;
+}
+
+void DaemonServer::clear_client(size_t client_index)
+{
+	if (client_index >= FT_SHIELD_MAX_CLIENTS)
+		return ;
+	
+	this->pollfd_array[client_index + 1].fd = -1;
+	this->pollfd_array[client_index + 1].events = 0;
+
+	this->client_list[client_index].state = ClientState::UNUSED;
+	this->client_list[client_index].last_seen = 0;
+}
+
+void DaemonServer::disconnect_client(Client *client)
+{
+	if (client == NULL)
+		return ;
+
+	close(client->pollfd->fd);
+	clear_client(client);
+	this->current_conn--;
+}
+
+void DaemonServer::disconnect_client(size_t client_index)
+{
+	if (client_index >= FT_SHIELD_MAX_CLIENTS)
+		return ;
+	
+	close(this->pollfd_array[client_index + 1].fd);
+	clear_client(client_index);
+	this->current_conn--;
 }
 
 void DaemonServer::run()
