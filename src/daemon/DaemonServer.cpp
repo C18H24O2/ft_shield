@@ -196,7 +196,7 @@ void DaemonServer::receive_message(Client *client)
 	while (1)	//loop on that thang
 	{
 		ssize_t rec_bytes = recv(client->pollfd->fd, buffer, FT_SHIELD_MESSAGE_SIZE, 0);
-		if ( rec_bytes <= 0)
+		if (rec_bytes <= 0)
 		{
 			if (rec_bytes == 0) // client disconnected
 				this->disconnect_client(client);
@@ -205,7 +205,7 @@ void DaemonServer::receive_message(Client *client)
 			return ;
 		}
 		client->input_buffer.append(buffer, rec_bytes);
-		if (rec_bytes < sizeof(buffer))
+		if ((size_t) rec_bytes < sizeof(buffer))
 			break ;
 	}
 }
