@@ -4,7 +4,7 @@
 
 let
   llvmPkgs = pkgs.llvmPackages_18;
-  stdenv = pkgs.stdenvAdapters.useMoldLinker llvmPkgs.stdenv;
+  stdenv = llvmPkgs.stdenv; #pkgs.stdenvAdapters.useMoldLinker llvmPkgs.stdenv;
 in
 (pkgs.mkShell.override { inherit stdenv; }) {
   nativeBuildInputs =
@@ -19,9 +19,16 @@ in
       bear
       patchutils
 
-      # obfuscator-llvm
       cmake
       meson
+
+      vagrant
+      (pkgs.writeScriptBin "nuke-amd-kvm" ''
+        #!${pkgs.stdenv.shell}
+        set -euo pipefail
+        sudo rmmod kvm-amd
+        sudo rmmod kvm
+      '')
     ]
     ++ (with llvmPkgs; [
       libllvm.dev

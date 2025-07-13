@@ -11,7 +11,7 @@ _ := $(shell bash gensources.sh sources.mk $(SRC_DIR))
 endif
 
 USE_LIBFTSYS := 0
-USE_LIBSP := 1
+USE_LIBSP := 0
 
 DEBUG ?= 0
 BONUS ?= 0
@@ -21,6 +21,7 @@ CFLAGS := -Wall -Wextra -Wno-unused-command-line-argument
 ifneq ($(USE_WARNINGS), 1)
 CFLAGS += -Werror
 endif
+LD := clang++
 LDFLAGS :=
 
 ifeq ($(USE_LIBFTSYS), 1)
@@ -46,8 +47,8 @@ CFLAGS += $(EXTRA_CFLAGS)
 CXXFLAGS += $(EXTRA_CXXFLAGS)
 
 ifeq ($(DEBUG), 1)
-CFLAGS += -g3 -gdwarf-3 -DSHIELD_DEBUG=1
-CXXFLAGS += -g3 -gdwarf-3 -DSHIELD_DEBUG=1
+CFLAGS += -g3 -ggdb -gdwarf-3 -DSHIELD_DEBUG=1
+CXXFLAGS += -g3 -ggdb -gdwarf-3 -DSHIELD_DEBUG=1
 NASMFLAGS += -g
 endif
 
@@ -87,7 +88,7 @@ endif
 all: $(NAME)
 
 $(NAME): $(MAIN_DEPS) 
-	$(CC) $(LDFLAGS) -o $@ $(LINK_DEPS) 
+	$(LD) $(LDFLAGS) -o $@ $(LINK_DEPS) 
 ifeq ($(DEBUG), 0)
 	strip -xXs $@
 endif

@@ -9,7 +9,6 @@
   outputs =
     { self, nixpkgs, ... }@inputs:
     let
-      inherit (self) outputs;
       systems = (import inputs.systems);
       forAllSystems = nixpkgs.lib.genAttrs systems;
     in
@@ -18,7 +17,10 @@
         system:
         {
           default = (import ./shell.nix) {
-            pkgs = import nixpkgs { inherit system; };
+            pkgs = import nixpkgs {
+              inherit system; 
+              config.allowUnfree = true;
+            };
           };
         }
       );
