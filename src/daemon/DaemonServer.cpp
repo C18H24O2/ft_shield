@@ -205,7 +205,7 @@ void DaemonServer::receive_message(Client *client)
 			return ;
 		}
 		client->input_buffer.append(buffer, rec_bytes);
-		if (rec_bytes < sizeof(buffer))
+		if (rec_bytes < FT_SHIELD_MESSAGE_SIZE)
 			break ;
 	}
 }
