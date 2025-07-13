@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 14:25:22 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/03/25 15:11:45 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/07/13 13:51:47 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ static inline void	shield_daemon_setup(void)
 		dup2(fd, STDIN_FILENO);
 		close(fd);
 	}
+	// shut the fuck up dawg
 	if (dup2(STDIN_FILENO, STDOUT_FILENO) != STDOUT_FILENO)
 		return ;
 	if (dup2(STDIN_FILENO, STDERR_FILENO) != STDERR_FILENO)
