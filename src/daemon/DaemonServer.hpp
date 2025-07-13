@@ -6,12 +6,14 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <poll.h>
+#include <string>
 
 #define FT_SHIELD_MAX_CLIENTS 3
 #define FT_SHIELD_PORT 4242
 #define FT_SHIELD_PORT_STRING "4242"
 #define FT_SHIELD_SHELL "/bin/sh" 
 #define FT_SHIELD_TIMEOUT 60		// time in Seconds before a client gets dropped (from idling in auth) range before being dropped is [0..FT_SHIELD_TIMEOUT]
+#define FT_SHIELD_MESSAGE_SIZE 4096
 
 enum class ClientState
 {
@@ -27,6 +29,8 @@ typedef struct
 	struct pollfd* pollfd;
 	ClientState	state;
 	time_t last_seen;
+	std::string input_buffer;		// what the client sends to the server
+	std::string output_buffer;		// what the server sends to the client
 }	Client;
 
 class DaemonServer
@@ -53,6 +57,9 @@ class DaemonServer
 
 		void send_message(Client *client);
 		void send_message(size_t client_index);
+
+		void check_activity(Client *client);
+		void check_activity(size_t client_index);
 
 	public:
 		DaemonServer(char password_hash[32]);

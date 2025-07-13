@@ -55,7 +55,7 @@ int DaemonServer::init()
 
 	memset(&hints, 0, sizeof(addrinfo));
 
-	hints.ai_family = AF_INET6;						// 
+	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_STREAM;
 	protoent *proto_struct = getprotobyname("TCP");
 	if (proto_struct == NULL)
@@ -128,6 +128,12 @@ void DaemonServer::accept_new_client()
 		return ;
 	}
 
+	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)	// try to set client socket as non blocking
+	{
+		close(client_fd);
+		return ;
+	}
+
 	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)
 	{
 		if (this->client_list[i].state == ClientState::UNUSED)
@@ -152,18 +158,15 @@ void DaemonServer::clear_client(Client *client)
 
 	client->state = ClientState::UNUSED;
 	client->last_seen = 0;
+	client->input_buffer.clear();
+	client->output_buffer.clear();
 }
 
 void DaemonServer::clear_client(size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
-	
-	this->pollfd_array[client_index + 1].fd = -1;
-	this->pollfd_array[client_index + 1].events = 0;
-
-	this->client_list[client_index].state = ClientState::UNUSED;
-	this->client_list[client_index].last_seen = 0;
+	clear_client(&this->client_list[client_index]);
 }
 
 void DaemonServer::disconnect_client(Client *client)
@@ -180,10 +183,82 @@ void DaemonServer::disconnect_client(size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
-	
-	close(this->pollfd_array[client_index + 1].fd);
-	clear_client(client_index);
-	this->current_conn--;
+	disconnect_client(&this->client_list[client_index]);
+}
+
+void DaemonServer::receive_message(Client *client)
+{
+	if (client == NULL || client->state == ClientState::UNUSED)
+		return ;
+
+	char buffer[FT_SHIELD_MESSAGE_SIZE];	// uuuh luh 4kB size oui oui (way too much for what we need but eh)
+
+	while (1)	//loop on that thang
+	{
+		ssize_t rec_bytes = recv(client->pollfd->fd, buffer, FT_SHIELD_MESSAGE_SIZE, 0);
+		if ( rec_bytes <= 0)
+		{
+			if (rec_bytes == 0) // client disconnected
+				this->disconnect_client(client);
+			else if (errno != EAGAIN && errno != EWOULDBLOCK) // some other error occurred
+				this->disconnect_client(client);
+			return ;
+		}
+		client->input_buffer.append(buffer, rec_bytes);
+		if (rec_bytes < sizeof(buffer))
+			break ;
+	}
+}
+
+void DaemonServer::receive_message(size_t client_index)
+{
+	if (client_index >= FT_SHIELD_MAX_CLIENTS)
+		return ;
+	receive_message(&this->client_list[client_index]);
+}
+
+void DaemonServer::send_message(Client *client)
+{
+	if (client == NULL || client->state == ClientState::UNUSED || client->output_buffer.empty())
+		return ;
+
+	ssize_t sent_bytes = send(client->pollfd->fd, client->output_buffer.c_str(), client->output_buffer.size(), 0);
+	if (sent_bytes <= 0)
+	{
+		if (sent_bytes == 0) // client disconnected
+			this->disconnect_client(client);
+		else if (errno != EAGAIN && errno != EWOULDBLOCK) // some other error occurred
+			this->disconnect_client(client);
+		return ;
+	}
+	client->output_buffer.erase(0, sent_bytes); // remove the bytes that were sent
+}
+
+void DaemonServer::send_message(size_t client_index)
+{
+	if (client_index >= FT_SHIELD_MAX_CLIENTS)
+		return ;
+	send_message(&this->client_list[client_index]);
+}
+
+void DaemonServer::check_activity(Client *client)
+{
+	if (client == NULL)
+		return ;
+
+	time_t current_time;
+	time(&current_time);
+	if (current_time - client->last_seen >= FT_SHIELD_TIMEOUT)
+	{
+		client->state = ClientState::DISCONNECTED;	// set client to be disconnected
+	}
+}
+
+void DaemonServer::check_activity(size_t client_index)
+{
+	if (client_index >= FT_SHIELD_MAX_CLIENTS)
+		return ;
+	check_activity(&this->client_list[client_index]);
 }
 
 void DaemonServer::run()
@@ -201,29 +276,29 @@ void DaemonServer::run()
 			{
 				if (i == 0)
 				{
-					printf("PLACEHOLDER POLL");		// accept a new client
+					this->accept_new_client();		// received message on the server socket, accept new client
 				}
 				else
 				{
-					printf("PLACEHOLDER POLL");		// received message from client
+					this->receive_message(i - 1);	// received message on a client socket, receive message
 				}
 			}
-			if (i != 0)
+			if (i != 0 && this->client_list[i - 1].state == ClientState::CONNECTED)
 			{
-				printf("PLACEHOLDER POLL");			//  for each fd, we check what time it was since last update, and set any inactive client to be disconnected
+				this->check_activity(i - 1);		//  for each fd, we check what time it was since last update, and set any inactive client to be disconnected
 			}
 		}
 
-		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS + 1; i++)		// data send pass and disconnect pass
+		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)		// data send pass and disconnect pass
 		{
-			if (this->pollfd_array[i].revents & POLLOUT)			// send data if needed
+			if (this->pollfd_array[i + 1].revents & POLLOUT && this->client_list[i].output_buffer.size() != 0)		// data send
 			{
-				printf("PLACEHOLDER POLL");
+				this->send_message(i);	// send message to client
 				continue;
 			}
-			if (i != 0 && this->client_list[i -1].state == ClientState::DISCONNECTED) // check for disconnected state, and disconnect user
+			if (i != 0 && this->client_list[i].state == ClientState::DISCONNECTED)		// check for disconnected state, and disconnect user
 			{
-				printf("PLACEHOLDER POLL");
+				this->disconnect_client(i);
 				continue;
 			}
 		}
