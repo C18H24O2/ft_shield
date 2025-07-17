@@ -8,6 +8,14 @@
 #include <vector>
 #include <signal.h>
 
+int sig_received = 0;
+
+void handle_signals(int sig)
+{
+	sig_received = sig;
+	return ;
+}
+
 DaemonServer::DaemonServer(char password_hash[32])
 {
 	memcpy(this->password_hash, password_hash, 32);
@@ -17,34 +25,31 @@ DaemonServer::DaemonServer(char password_hash[32])
 		this->should_accept = false;
 
 	// Initialize both arrays to unused states
-	bzero(this->pollfd_array, sizeof(pollfd) * (FT_SHIELD_MAX_CLIENTS + 1));
 	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS + 1; i++)
 	{
 		this->pollfd_array[i].fd = -1;		// -1 means unused as poll() man specifies it ignores pollfd if fd is -1
 		this->pollfd_array[i].events = 0;
 		this->pollfd_array[i].revents = 0;
-
 	}
-	bzero(this->client_list, sizeof(Client) * FT_SHIELD_MAX_CLIENTS);
 	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)
 	{
 		this->client_list[i].pollfd = &this->pollfd_array[i + 1];
 		this->client_list[i].state = ClientState::UNUSED;
 		this->client_list[i].last_seen = 0;
+		this->client_list[i].input_buffer.clear();
+		this->client_list[i].output_buffer.clear();
 	}
 	this->current_conn = 0;
 
 	struct sigaction sa;
 	bzero(&sa, sizeof(sa));
-	sa.sa_handler = SIG_IGN;
+	sa.sa_handler = handle_signals;
 
-	// yes this is terrible
-	for (size_t sig = 1; sig < NSIG; ++sig)
-	{
-		if (sig == SIGKILL || sig == SIGSTOP || sig == SIGSEGV || sig == SIGFPE || sig == SIGILL || sig == SIGBUS || sig == SIGTRAP)
-			continue ; // I just might not want to ignore these, just a thought though
-		sigaction(sig, &sa, NULL);
-	}
+	// some basic signal handling to avoid most coredumps
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGHUP, &sa, NULL);
 }
 
 DaemonServer::~DaemonServer() { }
@@ -263,11 +268,12 @@ void DaemonServer::check_activity(size_t client_index)
 
 void DaemonServer::run()
 {
-	while (1)
+	while (!sig_received)
 	{
 		if (poll(this->pollfd_array, current_conn + 1, FT_SHIELD_TIMEOUT * 1000) == -1)
 		{
-			// Something happened while poll was waiting, most likely a signal, if we haven't already crashed by now, then its probably fine to continue tbh
+			if (sig_received != 0)
+				return ;
 			continue ;
 		}
 		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS + 1; i++)		// data receive pass && timeout set pass
