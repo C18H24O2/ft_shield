@@ -6,9 +6,11 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:22:51 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/25 16:47:11 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/07/17 00:36:28 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#if !MATT_MODE
 
 #include <fcntl.h>
 #include <shield.h>
@@ -91,3 +93,5 @@ int	shield_copy(void)
 	cleanup_fd(bin);
 	return (!err);
 }
+
+#endif // !MATT_MODE

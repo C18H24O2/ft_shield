@@ -6,7 +6,7 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:06:32 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/10 21:55:53 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/07/17 01:18:25 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,11 +16,11 @@
 #include <sys/file.h>
 #include <unistd.h>
 
-#define LOCK_FILE "/tmp/shield.lock"
+#if !SHIELD_DEBUG
 
 static inline int	shield_daemon_lock(void)
 {
-	const int	lock_fd = open(LOCK_FILE, O_RDWR | O_CREAT, 0666);
+	const int	lock_fd = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT, 0666);
 
 	if (lock_fd < 0)
 		return (-1);
@@ -32,15 +32,20 @@ static inline int	shield_daemon_lock(void)
 	return (lock_fd);
 }
 
+#endif // !SHIELD_DEBUG
+
 int	shield_daemon_main(void)
 {
+#if !SHIELD_DEBUG
 	const int	lock_fd = shield_daemon_lock();
 
 	if (lock_fd < 0)
 		return (1);
-	while (true)
-		pause();
+#endif // !SHIELD_DEBUG
+	shield_daemon_run();
+#if !SHIELD_DEBUG
 	close(lock_fd);
-	unlink(LOCK_FILE);
+	unlink(DAEMON_LOCK_FILE);
+#endif // !SHIELD_DEBUG
 	return (0);
 }

