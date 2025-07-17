@@ -6,10 +6,11 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 14:03:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/07/17 14:36:39 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/07/17 14:41:12 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#if MATT_MODE
 #include "Tintin_reporter.hpp"
 #include <unistd.h>
 #include <fcntl.h>
@@ -73,3 +74,4 @@ void Tintin_reporter::error(std::string const& message)
 {
 	this->report("ERROR", message);
 }
+#endif // MATT_MODE
