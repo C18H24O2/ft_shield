@@ -6,9 +6,11 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:04:47 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/25 16:34:16 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/07/17 00:36:51 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#if !MATT_MODE
 
 #include <elf.h>
 #include <shield.h>
@@ -70,3 +72,5 @@ static inline int	Func(shield_change_entry)(int fd)
 
 # undef ELF_BITNESS
 #endif // ELF_BITNESS
+
+#endif // !MATT_MODE

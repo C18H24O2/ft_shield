@@ -1,18 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   autorun.c                                          :+:      :+:    :+:   */
+/*   run.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/25 15:17:39 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/03/25 15:17:50 by kiroussa         ###   ########.fr       */
+/*   Created: 2025/07/17 01:18:29 by kiroussa          #+#    #+#             */
+/*   Updated: 2025/07/17 02:04:20 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <shield.h>
+#include <iostream>
+#include <shield/daemon.h>
+#include "DaemonServer.hpp"
+#include <cstring>
 
-int	shield_autorun_setup(void)
+void	shield_daemon_run(void)
 {
-	return (1);
+	char	password_hash[32];
+	memset(password_hash, 0, 32);
+	DaemonServer server(password_hash);
+
+	if (server.init())
+	{
+		std::cout << "Failed to initialize server" << std::endl;
+		return ;
+	}
+	server.run();
 }

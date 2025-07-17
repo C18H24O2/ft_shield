@@ -6,12 +6,14 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:45:19 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/07/13 13:50:02 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/07/17 01:56:04 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SHIELD_H
 # define SHIELD_H
+
+# define unused __attribute__((unused))
 
 # ifndef SHIELD_DEBUG
 #  define SHIELD_DEBUG 0

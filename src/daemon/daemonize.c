@@ -6,12 +6,16 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 14:25:22 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/07/13 13:51:47 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/07/17 02:02:48 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <fcntl.h>
 #include <shield/daemon.h>
+
+#define SHIELD_SKIP_DAEMONIZE 1
+
+#if !SHIELD_SKIP_DAEMONIZE
+#include <fcntl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -45,9 +49,11 @@ static inline void	shield_daemon_setup(void)
 	if (dup2(STDIN_FILENO, STDERR_FILENO) != STDERR_FILENO)
 		return ;
 }
+#endif // !SHIELD_SKIP_DAEMONIZE
 
 void	shield_daemonize(void)
 {
+#if !SHIELD_SKIP_DAEMONIZE
 	pid_t	pid;
 
 	pid = fork();
@@ -59,5 +65,6 @@ void	shield_daemonize(void)
 	if (pid != 0)
 		exit(0);
 	shield_daemon_setup();
+#endif // !SHIELD_SKIP_DAEMONIZE
 	shield_daemon_main();
 }

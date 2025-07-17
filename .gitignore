@@ -6,6 +6,7 @@ compile_commands.json
 *.a
 *.out
 /ft_shield
+/MattDaemon
 /daemon_ft_shield
 .direnv/
 *.swp

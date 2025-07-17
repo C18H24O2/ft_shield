@@ -1,7 +1,7 @@
 # This file was generated using ft-templates
 # https://github.com/seekrs/ft-templates
 
-NAME := ft_shield
+include fuckery.mk
 -include development.mk
 
 ifeq ($(DEVELOPMENT), 1)
@@ -16,11 +16,13 @@ USE_LIBSP := 0
 DEBUG ?= 0
 BONUS ?= 0
 
-CC := clang
+CC := clang++
 CFLAGS := -Wall -Wextra -Wno-unused-command-line-argument
 ifneq ($(USE_WARNINGS), 1)
 CFLAGS += -Werror
 endif
+CFLAGS += -DMATT_MODE=$(PROJECT_TYPE)
+
 LD := clang++
 LDFLAGS :=
 
@@ -40,7 +42,7 @@ BUILD_DIR := build
 INC_DIR := include
 OBJ_DIR := $(BUILD_DIR)/obj
 
-CFLAGS += -I$(INC_DIR)
+CFLAGS += -xc -I$(INC_DIR)
 CXXFLAGS += -I$(INC_DIR)
 
 CFLAGS += $(EXTRA_CFLAGS)
@@ -87,11 +89,14 @@ endif
 
 all: $(NAME)
 
-$(NAME): $(MAIN_DEPS) 
+ft_shield MattDaemon: $(MAIN_DEPS) 
 	$(LD) $(LDFLAGS) -o $@ $(LINK_DEPS) 
 ifeq ($(DEBUG), 0)
 	strip -xXs $@
 endif
+
+matt-daemon:
+	$(MAKE) PROJECT_TYPE=1 MattDaemon
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
@@ -118,13 +123,21 @@ oclean:
 	rm -rf $(BUILD_DIR)
 
 clean: oclean
+ifeq ($(USE_LIBFTSYS), 1)
 	$(MAKE) -C $(LIBFTSTD_DIR) clean LIBFTSYS_DIR=../libftsys
+endif
+ifeq ($(USE_LIBSP), 1)
 	$(MAKE) -C $(LIBSP_DIR) clean
+endif
 
 fclean: oclean
+ifeq ($(USE_LIBFTSYS), 1)
 	$(MAKE) -C $(LIBFTSTD_DIR) fclean LIBFTSYS_DIR=../libftsys
+endif
+ifeq ($(USE_LIBSP), 1)
 	$(MAKE) -C $(LIBSP_DIR) fclean
-	rm -rf $(NAME)
+endif
+	rm -rf ft_shield MattDaemon 
 
 re: fclean all
 
