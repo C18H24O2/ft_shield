@@ -4,7 +4,8 @@ This repository contains the source code for both the `ft_shield` and `matt-daem
 
 To build either project, you can either:
 - Clone the repository as the right name (e.g. `git clone <url> ./ft_shield`)
-- Run `make <project-name>` (e.g. `make matt-daemon`)
+- Run `make <project-name>` (e.g. `make matt-daemon`, `make ft_shield`)
+  - Note that trying to make the `MattDaemon` executable directly **will** fail, use the project name instead.
 
 ## License
 
