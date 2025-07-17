@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <signal.h>
+#include "shield.h"
 
 int sig_received = 0;
 
@@ -40,16 +41,6 @@ DaemonServer::DaemonServer(char password_hash[32])
 		this->client_list[i].output_buffer.clear();
 	}
 	this->current_conn = 0;
-
-	struct sigaction sa;
-	bzero(&sa, sizeof(sa));
-	sa.sa_handler = handle_signals;
-
-	// some basic signal handling to avoid most coredumps
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGTERM, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
-	sigaction(SIGHUP, &sa, NULL);
 }
 
 DaemonServer::~DaemonServer() { }
@@ -64,7 +55,10 @@ int DaemonServer::init()
 	hints.ai_socktype = SOCK_STREAM;
 	protoent *proto_struct = getprotobyname("TCP");
 	if (proto_struct == NULL)
+	{
+		DEBUG("getprotobyname failed\n");
 		return 1;
+	}
 	hints.ai_protocol = proto_struct->p_proto;
 	hints.ai_flags = AI_PASSIVE;
 
@@ -98,21 +92,33 @@ int DaemonServer::init()
 
 	if (tmp == NULL)
 	{
+		DEBUG("Failed to bind to any address\n");
 		freeaddrinfo(servinfo);
 		return 1;
 	}
 	freeaddrinfo(servinfo);
 	if (fcntl(this->pollfd_array[0].fd, F_SETFL, O_NONBLOCK) == -1)
 	{
+		DEBUG("Failed to set server socket as non-blocking\n");
 		close(this->pollfd_array[0].fd);
 		return 1;
 	}
 	if (listen(this->pollfd_array[0].fd, SOMAXCONN) == -1)
 	{
+		DEBUG("Failed to listen on server socket\n");
 		close(this->pollfd_array[0].fd);
 		return 1;
 	}
 
+	struct sigaction sa;
+	bzero(&sa, sizeof(sa));
+	sa.sa_handler = handle_signals;
+
+	// some basic signal handling to avoid most coredumps
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGHUP, &sa, NULL);
 	return 0;
 }
 
