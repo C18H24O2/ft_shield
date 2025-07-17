@@ -8,6 +8,18 @@
 #include <poll.h>
 #include <string>
 
+#if MATT_MODE
+#include "Tintin_reporter.hpp"
+#define MLOG(x) logger.info(x) 
+#define MERR(x) logger.error(x)
+#else // !MATT_MODE
+#define MLOG(x) DEBUG("MLOG: " x)
+#define MERR(x) DEBUG("MERR: " x)
+#endif // !MATT_MODE
+
+#define MATT_LOGFILE_DIR "/var/log/matt_daemon"
+#define MATT_LOGFILE "/var/log/matt_daemon/matt_daemon.log"
+
 #define FT_SHIELD_MAX_CLIENTS 3
 #define FT_SHIELD_PORT 4242
 #define FT_SHIELD_PORT_STRING "4242"
@@ -20,7 +32,6 @@ enum class ClientState
 	UNUSED,			// Client slot is unused
 	CONNECTED,		// Initial state, awaiting authentication
 	AUTHENTICATED,  // Authenticated, awaiting command
-	SHELL,			// Special state where the client is directly connected to the shell
 	DISCONNECTED,	// Client has been set to be disconnected
 };
 
@@ -60,6 +71,10 @@ class DaemonServer
 
 		void check_activity(Client *client);
 		void check_activity(size_t client_index);
+
+#if MATT_MODE
+		Tintin_reporter logger;
+#endif
 
 	public:
 		DaemonServer(char password_hash[32]);

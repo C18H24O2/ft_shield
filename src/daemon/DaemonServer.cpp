@@ -47,6 +47,11 @@ DaemonServer::~DaemonServer() { }
 
 int DaemonServer::init()
 {
+#if MATT_MODE
+	if (this->logger.init(MATT_LOGFILE_DIR, MATT_LOGFILE) != 0)
+		return 1;
+#endif
+
 	addrinfo hints, *servinfo, *tmp;
 
 	memset(&hints, 0, sizeof(addrinfo));

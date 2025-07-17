@@ -98,6 +98,10 @@ endif
 matt-daemon:
 	$(MAKE) PROJECT_TYPE=1 MattDaemon
 
+kill-daemon:
+	kill -9 $(ps aux | grep ft_shield | grep -v grep | xargs echo | cut -d' ' -f2) 2>/dev/null
+	kill -9 $(ps aux | grep MattDaemon | grep -v grep | xargs echo | cut -d' ' -f2) 2>/dev/null
+
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@

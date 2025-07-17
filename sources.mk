@@ -6,6 +6,7 @@ SRCS += daemon/DaemonServer.cpp
 SRCS += daemon/main.c
 SRCS += daemon/run.cpp
 SRCS += daemon/start.s
+SRCS += daemon/Tintin_reporter.cpp
 SRCS += main.c
 SRCS += shield/autorun.c
 SRCS += shield/change_entry.c
