@@ -13,6 +13,7 @@
 #include <iostream>
 #include <shield/daemon.h>
 #include "DaemonServer.hpp"
+#include "shield.h"
 #include <cstring>
 
 void	shield_daemon_run(void)
@@ -23,7 +24,7 @@ void	shield_daemon_run(void)
 
 	if (server.init())
 	{
-		std::cout << "Failed to initialize server" << std::endl;
+		DEBUG("Failed to initialize the server\n");
 		return ;
 	}
 	server.run();
