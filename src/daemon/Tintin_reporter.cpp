@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 14:03:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/07/17 14:41:12 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/07/17 16:13:26 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,11 @@ Tintin_reporter::~Tintin_reporter()
 
 int Tintin_reporter::init(std::string const& parent_dir, std::string const& path)
 {
-	// Create parent dir
+#if SHIELD_DEBUG
+	(void) parent_dir, (void) path;
+	this->fd = 1;
+	info("SHIELD_DEBUG enabled, logging to stdout");
+#else // !SHIELD_DEBUG
 	if (mkdir(parent_dir.c_str(), 0755) == -1)
 	{
 		if (errno != EEXIST)
@@ -41,6 +45,7 @@ int Tintin_reporter::init(std::string const& parent_dir, std::string const& path
 	this->fd = open(path.c_str(), O_WRONLY | O_APPEND);
 	if (this->fd == -1)
 		return 1;
+#endif // !SHIELD_DEBUG
 	info("Started");
 	return 0;
 }
