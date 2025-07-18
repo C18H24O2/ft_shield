@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 14:03:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/07/17 16:13:26 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/07/17 19:01:42 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,8 @@ void Tintin_reporter::report(std::string const& type, std::string const& message
 	ss << " [ " << type << " ]";
 	ss << " - MattDaemon: ";
 	ss << message;
-	ss << ".\n";
+	if (message.back() != '\n')
+		ss << ".\n";
 
 	std::string result = ss.str();
 	(void)!write(this->fd, result.c_str(), result.size());

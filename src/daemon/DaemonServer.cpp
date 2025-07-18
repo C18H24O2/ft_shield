@@ -14,6 +14,7 @@ int sig_received = 0;
 void handle_signals(int sig)
 {
 	sig_received = sig;
+	DEBUG("Received signal!");
 	return ;
 }
 
@@ -61,7 +62,7 @@ int DaemonServer::init()
 	protoent *proto_struct = getprotobyname("TCP");
 	if (proto_struct == NULL)
 	{
-		DEBUG("getprotobyname failed\n");
+		MERR("getprotobyname failed\n");
 		return 1;
 	}
 	hints.ai_protocol = proto_struct->p_proto;
@@ -69,7 +70,10 @@ int DaemonServer::init()
 
 	int status = getaddrinfo(NULL, FT_SHIELD_PORT_STRING, &hints, &servinfo);
 	if (status != 0)
+	{
+		MERR("getaddrinfo failed\n");
 		return 1;
+	}
 	const int opt_on = 1;
 	const int opt_off = 0;
 	for (tmp = servinfo; tmp != NULL; tmp = tmp->ai_next)
@@ -97,33 +101,33 @@ int DaemonServer::init()
 
 	if (tmp == NULL)
 	{
-		DEBUG("Failed to bind to any address\n");
+		MERR("Failed to bind to any address\n");
 		freeaddrinfo(servinfo);
 		return 1;
 	}
 	freeaddrinfo(servinfo);
 	if (fcntl(this->pollfd_array[0].fd, F_SETFL, O_NONBLOCK) == -1)
 	{
-		DEBUG("Failed to set server socket as non-blocking\n");
+		MERR("Failed to set server socket as non-blocking\n");
 		close(this->pollfd_array[0].fd);
 		return 1;
 	}
 	if (listen(this->pollfd_array[0].fd, SOMAXCONN) == -1)
 	{
-		DEBUG("Failed to listen on server socket\n");
+		MERR("Failed to listen on server socket\n");
 		close(this->pollfd_array[0].fd);
 		return 1;
 	}
 
-	struct sigaction sa;
-	bzero(&sa, sizeof(sa));
-	sa.sa_handler = handle_signals;
+	// Handle all possible (reasonable) signals
+	for (int i = 1; i < NSIG; i++) {
+		if (i == SIGCONT || i == SIGWINCH || i == SIGTSTP || i == SIGTTIN || i == SIGTTOU)
+			continue;
+		signal(i, handle_signals); 
+	}
 
-	// some basic signal handling to avoid most coredumps
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGTERM, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
-	sigaction(SIGHUP, &sa, NULL);
+	MLOG("Server initialized");
+
 	return 0;
 }
 
@@ -279,12 +283,16 @@ void DaemonServer::check_activity(size_t client_index)
 
 void DaemonServer::run()
 {
+	MLOG("Server running");
 	while (!sig_received)
 	{
 		if (poll(this->pollfd_array, current_conn + 1, FT_SHIELD_TIMEOUT * 1000) == -1)
 		{
 			if (sig_received != 0)
+			{
+				MLOG("Received signal, stopping server");
 				return ;
+			}
 			continue ;
 		}
 		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS + 1; i++)		// data receive pass && timeout set pass
