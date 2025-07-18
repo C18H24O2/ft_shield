@@ -293,6 +293,7 @@ void DaemonServer::run()
 				MLOG("Received signal, stopping server");
 				return ;
 			}
+			MLOG("Poll failed, continuing");
 			continue ;
 		}
 		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS + 1; i++)		// data receive pass && timeout set pass
