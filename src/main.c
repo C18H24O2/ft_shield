@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/06 20:07:51 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/08/06 22:15:27 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,8 +72,8 @@ static inline bool	shield_daemon_check(void)
 			return (true);
 		}
 		close(fd);
+		puts("Daemon already running!");
 	}
-	puts("Daemon already running!");
 	return (false);
 }
 #endif // MATT_MODE

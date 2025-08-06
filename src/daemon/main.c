@@ -6,7 +6,7 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:06:32 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/06 20:04:02 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/08/06 21:30:36 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ int	shield_daemon_main(void)
 
 	if (lock_fd < 0)
 		return (1);
-	DEBUG("daemon started on pid %d", le_getpid());
+	DEBUG("daemon started on pid %d\n", le_getpid());
 	shield_daemon_run();
 	close(lock_fd);
 	unlink(DAEMON_LOCK_FILE);
