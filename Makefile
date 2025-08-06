@@ -42,6 +42,7 @@ BUILD_DIR := build
 INC_DIR := include
 OBJ_DIR := $(BUILD_DIR)/obj
 
+#TODO: maybe move all .c to .cc or .cpp files
 CFLAGS += -xc -I$(INC_DIR)
 CXXFLAGS += -I$(INC_DIR)
 

@@ -6,17 +6,17 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:06:32 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/07/17 01:18:25 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/08/06 20:04:02 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <fcntl.h>
 #include <shield/daemon.h>
+#include <shield/le_function.h>
 #include <stdbool.h>
+#include <string.h>
 #include <sys/file.h>
 #include <unistd.h>
-
-#if !SHIELD_DEBUG
 
 static inline int	shield_daemon_lock(void)
 {
@@ -29,23 +29,20 @@ static inline int	shield_daemon_lock(void)
 		close(lock_fd);
 		return (-1);
 	}
+	int pid = le_getpid();
+	(void)!write(lock_fd, &pid, sizeof(pid)); // fuck it, write the bytes
 	return (lock_fd);
 }
 
-#endif // !SHIELD_DEBUG
-
 int	shield_daemon_main(void)
 {
-#if !SHIELD_DEBUG
 	const int	lock_fd = shield_daemon_lock();
 
 	if (lock_fd < 0)
 		return (1);
-#endif // !SHIELD_DEBUG
+	DEBUG("daemon started on pid %d", le_getpid());
 	shield_daemon_run();
-#if !SHIELD_DEBUG
 	close(lock_fd);
 	unlink(DAEMON_LOCK_FILE);
-#endif // !SHIELD_DEBUG
 	return (0);
 }

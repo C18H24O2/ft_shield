@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:45:19 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/07/17 01:56:04 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/08/06 20:02:46 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #  define SHIELD_DEBUG 0
 #  define DEBUG(fmt, ...)
 # elif SHIELD_DEBUG == 1
+#  include <stdio.h>
 #  define DEBUG(fmt, ...) printf("[DEBUG] %s: " fmt, __func__ __VA_OPT__(,) __VA_ARGS__)
 # endif // !SHIELD_DEBUG
 

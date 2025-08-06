@@ -1,23 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   autorun.c                                          :+:      :+:    :+:   */
+/*   le_function.h                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/25 15:17:39 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/06 18:11:40 by kiroussa         ###   ########.fr       */
+/*   Created: 2025/08/06 20:02:54 by kiroussa          #+#    #+#             */
+/*   Updated: 2025/08/06 20:04:28 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#if !MATT_MODE
+#ifndef LE_FUNCTION_H
+# define LE_FUNCTION_H
 
-#include <shield.h>
+# ifdef __cplusplus
+extern "C" {
+# endif // __cplusplus
 
-//TODO: ft_shield autorun desktop entry (systemd)
-int	shield_autorun_setup(void)
-{
-	return (1);
+pid_t	le_getpid(void);
+
+# ifdef __cplusplus
 }
+# endif // __cplusplus
 
-#endif // !MATT_MODE
+#endif // LE_FUNCTION_H
