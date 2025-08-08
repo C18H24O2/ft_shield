@@ -6,11 +6,12 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 14:03:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/06 20:01:37 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/08/08 21:48:35 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #if MATT_MODE
+#include <shield/le_function.h>
 #include "Tintin_reporter.hpp"
 #include <unistd.h>
 #include <fcntl.h>
@@ -29,24 +30,43 @@ Tintin_reporter::~Tintin_reporter()
 		close(this->fd);
 }
 
-int Tintin_reporter::init(std::string const& parent_dir, std::string const& path)
+int Tintin_reporter::init(std::string const& parent_dir, std::string const& name)
 {
-// #if SHIELD_DEBUG
-// 	(void) parent_dir, (void) path;
-// 	this->fd = 1;
-// 	info("SHIELD_DEBUG enabled, logging to stdout");
-// #else // !SHIELD_DEBUG
-	DEBUG("Tintin_reporter::init(\"%s\", \"%s\")\n", parent_dir.c_str(), path.c_str());
+#if SHIELD_DEBUG
+	char* env = getenv("SHIELD_LOG_STDOUT");
+	if (env) {
+		this->fd = 1;
+		info("SHIELD_DEBUG enabled and SHIELD_LOG_STDOUT var set, logging to stdout");
+		return 0;
+	}
+#endif // SHIELD_DEBUG
+	DEBUG("Tintin_reporter::init(\"%s\", \"%s\")\n", parent_dir.c_str(), name.c_str());
+
 	if (mkdir(parent_dir.c_str(), 0755) == -1)
 	{
 		if (errno != EEXIST)
+		{
+			DEBUG("Failed to create the directory \"%s\": %m\n", parent_dir.c_str());
 			return 1;
+		}
 	}
-	
-	this->fd = open(path.c_str(), O_WRONLY | O_APPEND);
-	if (this->fd == -1)
+
+	int pid = le_getpid();
+	if (pid == -1)
+	{
+		DEBUG("Failed to get pid: %m\n");
 		return 1;
-// #endif // !SHIELD_DEBUG
+	}
+	std::stringstream ss;
+	ss << parent_dir << "/" << name << "." << pid << ".log";
+	std::string path = ss.str();
+	
+	this->fd = open(path.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
+	if (this->fd == -1)
+	{
+		DEBUG("Failed to open the file \"%s\": %m\n", path.c_str());
+		return 1;
+	}
 	info("Started");
 	return 0;
 }

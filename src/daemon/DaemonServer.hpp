@@ -17,12 +17,11 @@
 #define MERR(x) DEBUG("MERR: " x)
 #endif // !MATT_MODE
 
+#define MATT_LOGFILE "matt_daemon"
 #if SHIELD_DEBUG
 #define MATT_LOGFILE_DIR "/tmp/matt_daemon"
-#define MATT_LOGFILE "/tmp/matt_daemon/matt_daemon.log"
 #else // !SHIELD_DEBUG
 #define MATT_LOGFILE_DIR "/var/log/matt_daemon"
-#define MATT_LOGFILE "/var/log/matt_daemon/matt_daemon.log"
 #endif // !SHIELD_DEBUG
 
 #define FT_SHIELD_MAX_CLIENTS 3

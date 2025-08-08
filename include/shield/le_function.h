@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/06 20:02:54 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/06 20:04:28 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/08/08 21:52:36 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,8 @@
 extern "C" {
 # endif // __cplusplus
 
-pid_t	le_getpid(void);
+int	le_getpid(void);
+const char *le_strsignal(int sigval);
 
 # ifdef __cplusplus
 }

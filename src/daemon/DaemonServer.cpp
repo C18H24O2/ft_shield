@@ -1,7 +1,10 @@
 #include "DaemonServer.hpp"
+#include <shield/le_function.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -14,7 +17,7 @@ int sig_received = 0;
 void handle_signals(int sig)
 {
 	sig_received = sig;
-	DEBUG("Received signal!");
+	DEBUG("Received signal!\n");
 	return ;
 }
 
@@ -82,6 +85,7 @@ int DaemonServer::init()
 		this->pollfd_array[0].fd = socket(tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol);
 		if (this->pollfd_array[0].fd== -1)
 			continue;
+		DEBUG("Created socket %d\n", this->pollfd_array[0].fd);
 		if (setsockopt(this->pollfd_array[0].fd, SOL_SOCKET, SO_REUSEADDR, &opt_on, sizeof(opt_on)) == -1)
 		{
 			close(this->pollfd_array[0].fd);
@@ -97,6 +101,7 @@ int DaemonServer::init()
 			close(this->pollfd_array[0].fd);
 			continue;
 		}
+		DEBUG("Bound successfully to %s:%d\n", inet_ntoa(((struct sockaddr_in*)tmp->ai_addr)->sin_addr), ntohs(((struct sockaddr_in*)tmp->ai_addr)->sin_port));
 		break;
 	}
 
@@ -291,12 +296,13 @@ void DaemonServer::run()
 		{
 			if (sig_received != 0)
 			{
-				MLOG("Received signal, stopping server");
+				this->logger.info("Received signal (" + std::string(le_strsignal(sig_received)) + "), stopping server");
 				break ;
 			}
 			MLOG("Poll failed, continuing");
 			continue ;
 		}
+		DEBUG("got %d events\n", this->pollfd_array[0].revents);
 		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS + 1; i++)		// data receive pass && timeout set pass
 		{
 			if (this->pollfd_array[i].revents & POLLIN)

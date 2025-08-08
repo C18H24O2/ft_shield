@@ -8,6 +8,7 @@ SRCS += daemon/run.cpp
 SRCS += daemon/start.s
 SRCS += daemon/Tintin_reporter.cpp
 SRCS += funcs/le_getpid.c
+SRCS += funcs/le_strsignal.c
 SRCS += main.c
 SRCS += shield/autorun.c
 SRCS += shield/change_entry.c

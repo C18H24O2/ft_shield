@@ -1,6 +1,7 @@
 *.o
 /.cache
 compile_commands.json
+/*.lock
 /obfuscator-llvm
 /glibc_debug
 *.a
