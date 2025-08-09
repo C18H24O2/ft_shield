@@ -125,6 +125,9 @@ int DaemonServer::init()
 		return 1;
 	}
 
+	this->pollfd_array[0].events = POLLIN;	// we want to receive data on the server socket
+	this->pollfd_array[0].revents = 0;
+
 	// Handle all possible (reasonable) signals
 	for (int i = 1; i < NSIG; i++) {
 		if (i == SIGCONT || i == SIGWINCH || i == SIGTSTP || i == SIGTTIN || i == SIGTTOU)
@@ -167,7 +170,7 @@ void DaemonServer::accept_new_client()
 			this->pollfd_array[i + 1].fd = client_fd;
 			this->client_list[i].state = ClientState::CONNECTED;
 			time(&this->client_list[i].last_seen);
-			this->pollfd_array[i + 1].events = POLLIN | POLLOUT;	// we want to receive data and send data
+			this->pollfd_array[i + 1].events = POLLIN;	// we want to receive data and send data
 			this->current_conn++;
 			return ;
 		}
@@ -181,6 +184,7 @@ void DaemonServer::clear_client(Client *client)
 
 	client->pollfd->fd = -1;
 	client->pollfd->events = 0;
+	client->pollfd->revents = 0;
 
 	client->state = ClientState::UNUSED;
 	client->last_seen = 0;
@@ -224,16 +228,32 @@ void DaemonServer::receive_message(Client *client)
 		ssize_t rec_bytes = recv(client->pollfd->fd, buffer, FT_SHIELD_MESSAGE_SIZE, 0);
 		if (rec_bytes <= 0)
 		{
+			DEBUG("client disconnected or error occurred\n");
 			if (rec_bytes == 0) // client disconnected
-				this->disconnect_client(client);
+				client->state = ClientState::DISCONNECTED;
 			else if (errno != EAGAIN && errno != EWOULDBLOCK) // some other error occurred
-				this->disconnect_client(client);
+				client->state = ClientState::DISCONNECTED;
 			return ;
 		}
 		client->input_buffer.append(buffer, rec_bytes);
 		if (rec_bytes < FT_SHIELD_MESSAGE_SIZE)
 			break ;
 	}
+}
+
+void print_client_info(const Client &client)
+{
+	DEBUG("CLIENT INFO:\n");
+	DEBUG("  State: %d\n", static_cast<int>(client.state));
+	DEBUG("  Last seen: %ld\n", client.last_seen);
+	DEBUG("  Input buffer size: %zu\n", client.input_buffer.size());
+	DEBUG("  Output buffer size: %zu\n", client.output_buffer.size());
+	DEBUG("  Pollfd fd: %d\n", client.pollfd->fd);
+	DEBUG("  Pollfd events: %d\n", client.pollfd->events);
+	DEBUG("  Pollfd revents: %d\n", client.pollfd->revents);
+	DEBUG("  Input buffer content: %s\n", client.input_buffer.c_str());
+	DEBUG("  Output buffer content: %s\n", client.output_buffer.c_str());
+	DEBUG("END OF CLIENT INFO\n");
 }
 
 void DaemonServer::receive_message(size_t client_index)
@@ -251,13 +271,15 @@ void DaemonServer::send_message(Client *client)
 	ssize_t sent_bytes = send(client->pollfd->fd, client->output_buffer.c_str(), client->output_buffer.size(), 0);
 	if (sent_bytes <= 0)
 	{
+		DEBUG("client disconnected or error occurred\n");
 		if (sent_bytes == 0) // client disconnected
-			this->disconnect_client(client);
+			client->state = ClientState::DISCONNECTED; // set client to be disconnected
 		else if (errno != EAGAIN && errno != EWOULDBLOCK) // some other error occurred
-			this->disconnect_client(client);
+			client->state = ClientState::DISCONNECTED; // set client to be disconnected
 		return ;
 	}
 	client->output_buffer.erase(0, sent_bytes); // remove the bytes that were sent
+	client->pollfd->events = POLLIN; // reset events to only POLLIN, as we don't want to send data anymore
 }
 
 void DaemonServer::send_message(size_t client_index)
@@ -296,23 +318,33 @@ void DaemonServer::run()
 		{
 			if (sig_received != 0)
 			{
+				#if MATT_MODE
 				this->logger.info("Received signal (" + std::string(le_strsignal(sig_received)) + "), stopping server");
+				#endif
 				break ;
 			}
 			MLOG("Poll failed, continuing");
 			continue ;
 		}
-		DEBUG("got %d events\n", this->pollfd_array[0].revents);
+		// DEBUG("got %d events\n", this->pollfd_array[0].revents);
 		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS + 1; i++)		// data receive pass && timeout set pass
 		{
+			// DEBUG("receive/connect %zu\n", i);
+
 			if (this->pollfd_array[i].revents & POLLIN)
 			{
+				DEBUG("Received event on fd %zu\n", i);
 				if (i == 0)
 				{
+					DEBUG("New client trying to connect\n");
+					this->pollfd_array[i].revents = 0;	// reset revents for the server socket
 					this->accept_new_client();		// received message on the server socket, accept new client
+					DEBUG("Accepted new client, current connections: %d\n", this->current_conn);
 				}
 				else
 				{
+					// print_client_info(this->client_list[i - 1]); // Print client info for debugging
+					DEBUG("Received message on client socket %zu\n", i - 1);
 					this->receive_message(i - 1);	// received message on a client socket, receive message
 				}
 			}
@@ -324,13 +356,17 @@ void DaemonServer::run()
 
 		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)		// data send pass and disconnect pass
 		{
+			// DEBUG("send/disconnect %zu\n", i);
+			// print_client_info(this->client_list[i]); // Print client info for debugging
 			if (this->pollfd_array[i + 1].revents & POLLOUT && this->client_list[i].output_buffer.size() != 0)		// data send
 			{
+				DEBUG("Sending message to client %zu\n", i);
 				this->send_message(i);	// send message to client
 				continue;
 			}
-			if (i != 0 && this->client_list[i].state == ClientState::DISCONNECTED)		// check for disconnected state, and disconnect user
+			if (this->client_list[i].state == ClientState::DISCONNECTED)		// check for disconnected state, and disconnect user
 			{
+				DEBUG("Client %zu disconnected\n", i);
 				this->disconnect_client(i);
 				continue;
 			}
