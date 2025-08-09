@@ -249,11 +249,11 @@ void DaemonServer::receive_message(Client *client)
 void print_client_info(const Client &client)
 {
 	DEBUG("CLIENT INFO:\n");
-	DEBUG("  Index: %d\n", client.index);
+	DEBUG("  Index: %d\n", (int) client.index);
 	DEBUG("  State: %d\n", static_cast<int>(client.state));
 	DEBUG("  Last seen: %ld\n", client.last_seen);
-	DEBUG("  Input buffer size: %zu\n", client.input_buffer.size());
-	DEBUG("  Output buffer size: %zu\n", client.output_buffer.size());
+	DEBUG("  Input buffer size: %d\n", (int) client.input_buffer.size());
+	DEBUG("  Output buffer size: %d\n", (int) client.output_buffer.size());
 	DEBUG("  Pollfd fd: %d\n", client.pollfd->fd);
 	DEBUG("  Pollfd events: %d\n", client.pollfd->events);
 	DEBUG("  Pollfd revents: %d\n", client.pollfd->revents);
@@ -261,6 +261,8 @@ void print_client_info(const Client &client)
 	DEBUG("  Output buffer content: %s\n", client.output_buffer.c_str());
 	DEBUG("END OF CLIENT INFO\n");
 }
+#else
+# define print_client_info(x)
 #endif
 
 void DaemonServer::receive_message(size_t client_index)
