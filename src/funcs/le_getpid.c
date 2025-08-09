@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/06 20:04:11 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/06 20:04:25 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/08/09 13:05:54 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ static inline int	le_atoi(const char *nptr)
 	return (res * mult);
 }
 
+//TODO: fuck this is the wrong pid in daemonization cases, fuck fuck fuck fuck fuck fuck fuck
+//TODO: replace with libftsys getpid()
 pid_t	le_getpid(void)
 {
 	const int	fd = open("/proc/self/stat", O_RDONLY);

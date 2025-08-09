@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/08 21:50:41 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/08 21:52:28 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/08/09 13:05:46 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@
 # define SIGRTMIN 0
 #endif
 
+//TODO: replace with libftstd strsignal()
 const char	*le_strsignal(int sigval)
 {
 	const char	*desc_map[] = {

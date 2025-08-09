@@ -244,6 +244,7 @@ void DaemonServer::receive_message(Client *client)
 	MLOG("Received message from client " + std::to_string(client->index) + ": " + client->input_buffer);
 }
 
+#if SHIELD_DEBUG
 void print_client_info(const Client &client)
 {
 	DEBUG("CLIENT INFO:\n");
@@ -259,6 +260,7 @@ void print_client_info(const Client &client)
 	DEBUG("  Output buffer content: %s\n", client.output_buffer.c_str());
 	DEBUG("END OF CLIENT INFO\n");
 }
+#endif
 
 void DaemonServer::receive_message(size_t client_index)
 {
