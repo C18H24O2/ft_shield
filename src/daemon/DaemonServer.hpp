@@ -41,6 +41,7 @@ enum class ClientState
 
 typedef struct
 {
+	int index;
 	struct pollfd* pollfd;
 	ClientState	state;
 	time_t last_seen;

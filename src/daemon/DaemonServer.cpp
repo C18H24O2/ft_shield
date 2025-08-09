@@ -101,7 +101,7 @@ int DaemonServer::init()
 			close(this->pollfd_array[0].fd);
 			continue;
 		}
-		DEBUG("Bound successfully to %s:%d\n", inet_ntoa(((struct sockaddr_in*)tmp->ai_addr)->sin_addr), ntohs(((struct sockaddr_in*)tmp->ai_addr)->sin_port));
+		MLOG("Bound successfully to " + std::string(inet_ntoa(((struct sockaddr_in*)tmp->ai_addr)->sin_addr)) + ":" + std::to_string(ntohs(((struct sockaddr_in*)tmp->ai_addr)->sin_port)) + "\n");
 		break;
 	}
 
@@ -167,6 +167,7 @@ void DaemonServer::accept_new_client()
 	{
 		if (this->client_list[i].state == ClientState::UNUSED)
 		{
+			this->client_list[i].index = this->current_conn;
 			this->pollfd_array[i + 1].fd = client_fd;
 			this->client_list[i].state = ClientState::CONNECTED;
 			time(&this->client_list[i].last_seen);
@@ -223,6 +224,7 @@ void DaemonServer::receive_message(Client *client)
 
 	char buffer[FT_SHIELD_MESSAGE_SIZE];	// uuuh luh 4kB size oui oui (way too much for what we need but eh)
 
+	client->input_buffer.clear();
 	while (1)	//loop on that thang
 	{
 		ssize_t rec_bytes = recv(client->pollfd->fd, buffer, FT_SHIELD_MESSAGE_SIZE, 0);
@@ -239,11 +241,13 @@ void DaemonServer::receive_message(Client *client)
 		if (rec_bytes < FT_SHIELD_MESSAGE_SIZE)
 			break ;
 	}
+	MLOG("Received message from client " + std::to_string(client->index) + ": " + client->input_buffer);
 }
 
 void print_client_info(const Client &client)
 {
 	DEBUG("CLIENT INFO:\n");
+	DEBUG("  Index: %zu\n", client.index);
 	DEBUG("  State: %d\n", static_cast<int>(client.state));
 	DEBUG("  Last seen: %ld\n", client.last_seen);
 	DEBUG("  Input buffer size: %zu\n", client.input_buffer.size());
@@ -311,7 +315,8 @@ void DaemonServer::check_activity(size_t client_index)
 
 void DaemonServer::run()
 {
-	MLOG("Server running");
+	MLOG("Server running, process id: " + std::to_string(le_getpid()) + "\n");
+
 	while (!sig_received)
 	{
 		if (poll(this->pollfd_array, current_conn + 1, FT_SHIELD_TIMEOUT * 1000) == -1)
