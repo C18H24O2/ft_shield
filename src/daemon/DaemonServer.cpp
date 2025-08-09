@@ -38,6 +38,7 @@ DaemonServer::DaemonServer(char password_hash[32])
 	}
 	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)
 	{
+		this->client_list[i].index = i;
 		this->client_list[i].pollfd = &this->pollfd_array[i + 1];
 		this->client_list[i].state = ClientState::UNUSED;
 		this->client_list[i].last_seen = 0;
@@ -248,7 +249,7 @@ void DaemonServer::receive_message(Client *client)
 void print_client_info(const Client &client)
 {
 	DEBUG("CLIENT INFO:\n");
-	DEBUG("  Index: %zu\n", client.index);
+	DEBUG("  Index: %d\n", client.index);
 	DEBUG("  State: %d\n", static_cast<int>(client.state));
 	DEBUG("  Last seen: %ld\n", client.last_seen);
 	DEBUG("  Input buffer size: %zu\n", client.input_buffer.size());
@@ -321,7 +322,8 @@ void DaemonServer::run()
 
 	while (!sig_received)
 	{
-		if (poll(this->pollfd_array, current_conn + 1, FT_SHIELD_TIMEOUT * 1000) == -1)
+		DEBUG("Polling for events on %d connections\n", current_conn);
+		if (poll(this->pollfd_array, FT_SHIELD_MAX_CLIENTS + 1, FT_SHIELD_TIMEOUT * 1000) == -1)
 		{
 			if (sig_received != 0)
 			{
@@ -333,7 +335,7 @@ void DaemonServer::run()
 			MLOG("Poll failed, continuing");
 			continue ;
 		}
-		// DEBUG("got %d events\n", this->pollfd_array[0].revents);
+		DEBUG("got %d events\n", this->pollfd_array[0].revents);
 		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS + 1; i++)		// data receive pass && timeout set pass
 		{
 			// DEBUG("receive/connect %zu\n", i);
@@ -364,7 +366,7 @@ void DaemonServer::run()
 		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)		// data send pass and disconnect pass
 		{
 			// DEBUG("send/disconnect %zu\n", i);
-			// print_client_info(this->client_list[i]); // Print client info for debugging
+			print_client_info(this->client_list[i]); // Print client info for debugging
 			if (this->pollfd_array[i + 1].revents & POLLOUT && this->client_list[i].output_buffer.size() != 0)		// data send
 			{
 				DEBUG("Sending message to client %zu\n", i);
