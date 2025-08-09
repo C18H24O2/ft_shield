@@ -21,7 +21,8 @@ CFLAGS := -Wall -Wextra -Wno-unused-command-line-argument
 ifneq ($(USE_WARNINGS), 1)
 CFLAGS += -Werror
 endif
-CFLAGS += -DMATT_MODE=$(PROJECT_TYPE)
+SHIELD_PORT ?= 4242
+CFLAGS += -DMATT_MODE=$(PROJECT_TYPE) -DFT_SHIELD_PORT=$(SHIELD_PORT) -DFT_SHIELD_PORT_STRING=\"$(SHIELD_PORT)\"
 
 LD := clang++
 LDFLAGS :=

