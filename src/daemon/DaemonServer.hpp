@@ -13,8 +13,8 @@
 #define MLOG(x) logger.info(x) 
 #define MERR(x) logger.error(x)
 #else // !MATT_MODE
-#define MLOG(x) DEBUG("MLOG: " x)
-#define MERR(x) DEBUG("MERR: " x)
+#define MLOG(x) // DEBUG("MLOG: " x)
+#define MERR(x) // DEBUG("MERR: " x)
 #endif // !MATT_MODE
 
 #define MATT_LOGFILE "matt_daemon"
