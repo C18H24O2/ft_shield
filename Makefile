@@ -1,6 +1,8 @@
 # This file was generated using ft-templates
 # https://github.com/seekrs/ft-templates
 
+PASSWORD ?= Password123
+
 include fuckery.mk
 -include development.mk
 
@@ -12,12 +14,14 @@ endif
 
 USE_LIBFTSYS := 0
 USE_LIBSP := 0
+USE_WW := 0
 
 DEBUG ?= 0
 BONUS ?= 0
 
 CC := clang++
-CFLAGS := -Wall -Wextra -Wno-unused-command-line-argument
+CFLAGS := -Wall -Wextra -Wno-unused-command-line-argument -DSHIELD_PASSWORD=\"$(shell echo PASSWORD | sha256sum | cut -d' ' -f1)\"
+CFLAGS += 
 ifneq ($(USE_WARNINGS), 1)
 CFLAGS += -Werror
 endif
@@ -68,6 +72,8 @@ LIBFTSTD_DIR := $(LIB_DIR)/libftstd
 LIBFTSTD := $(LIBFTSTD_DIR)/libftstd.a
 LIBSP_DIR := $(LIB_DIR)/shitass-poopface
 LIBSP := $(LIBSP_DIR)/libshitass-poopface.so
+WW_DIR := $(LIB_DIR)/woody-woodpacker
+WW_BIN := $(WW_DIR)/woody_woodpacker
 
 ifeq ($(USE_LIBFTSYS), 1)
 CFLAGS += -I$(LIBFTSYS_DIR)/include -I$(LIBFTSTD_DIR)/include
@@ -88,6 +94,9 @@ ifeq ($(USE_LIBFTSYS), 1)
 MAIN_DEPS += $(LIBFTSYS) $(LIBFTSTD)
 LINK_DEPS += $(LIBFTSYS) $(LIBFTSTD)
 endif
+ifeq ($(USE_WW), 1)
+MAIN_DEPS += $(WW_BIN)
+endif
 
 all: $(NAME)
 
@@ -95,6 +104,9 @@ ft_shield MattDaemon: $(MAIN_DEPS)
 	$(LD) $(LDFLAGS) -o $@ $(LINK_DEPS) 
 ifeq ($(DEBUG), 0)
 	strip -xXs $@
+endif
+ifeq ($(USE_WW), 1)
+	$(WW_BIN) -p 'none' $@
 endif
 
 matt-daemon:

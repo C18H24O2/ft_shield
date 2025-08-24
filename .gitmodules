@@ -1,3 +1,6 @@
 [submodule "third-party/libft"]
 	path = third-party/libft
 	url = https://codeberg.org/27/libft.git
+[submodule "third-party/woody-woodpacker"]
+	path = third-party/woody-woodpacker
+	url = https://codeberg.org/27/woody-woodpacker

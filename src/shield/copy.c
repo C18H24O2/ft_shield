@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:22:51 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/07/17 00:36:28 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/08/24 19:49:06 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ int	shield_copy(void)
 	{
 		err = shield_copy_file(orig, bin);
 		if (!err)
-			err = shield_change_entry(bin);
+			err = shield_flip_bit(bin);
 		if (!err)
 			err = (fchmod(bin, 0755) < 0);
 	}
