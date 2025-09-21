@@ -5,7 +5,6 @@ SRCS += daemon/daemonize.c
 SRCS += daemon/DaemonServer.cpp
 SRCS += daemon/main.c
 SRCS += daemon/run.cpp
-SRCS += daemon/start.s
 SRCS += daemon/Tintin_reporter.cpp
 SRCS += funcs/le_getpid.c
 SRCS += funcs/le_strsignal.c

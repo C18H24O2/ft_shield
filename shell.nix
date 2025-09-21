@@ -3,8 +3,8 @@
 }:
 
 let
-  llvmPkgs = pkgs.llvmPackages_18;
-  stdenv = llvmPkgs.stdenv; #pkgs.stdenvAdapters.useMoldLinker llvmPkgs.stdenv;
+  llvmPkgs = pkgs.llvmPackages_19;
+  stdenv = pkgs.stdenvAdapters.useMoldLinker llvmPkgs.stdenv;
 in
 (pkgs.mkShell.override { inherit stdenv; }) {
   nativeBuildInputs =
@@ -13,7 +13,7 @@ in
       nasm
       valgrind
       gdb
-      lldb
+      # lldb
       strace
       ltrace
       bear
@@ -22,7 +22,7 @@ in
       cmake
       meson
 
-      vagrant
+      # vagrant
       (pkgs.writeScriptBin "nuke-amd-kvm" ''
         #!${pkgs.stdenv.shell}
         set -euo pipefail

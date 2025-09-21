@@ -247,8 +247,10 @@ bool DaemonServer::receive_message(Client *client)
 		if (rec_bytes < FT_SHIELD_MESSAGE_SIZE)
 			break;
 	}
+#if MATT_MODE
 	if (client->input_buffer == "quit")
 		return (false);
+#endif
 	MLOG("User input: " + client->input_buffer);
 	return (true);
 }
@@ -347,9 +349,7 @@ void DaemonServer::run()
 			}
 			if (sig_received != 0)
 			{
-				#if MATT_MODE
-				this->logger.info("Received signal (" + std::string(le_strsignal(sig_received)) + "), stopping server.");
-				#endif
+				MLOG("Received signal (" + std::string(le_strsignal(sig_received)) + "), stopping server.");
 				break ;
 			}
 			DEBUG("Poll failed, continuing.\n");
@@ -377,7 +377,7 @@ void DaemonServer::run()
 					DEBUG("Received message on client socket %zu\n", i - 1);
 					if (!this->receive_message(i - 1)) {	// received message on a client socket, receive message
 						// We want to quit, explode.
-						this->logger.info("Received quit command (client " + std::to_string(i - 1) + "), exiting.");
+						MLOG("Received quit command (client " + std::to_string(i - 1) + "), exiting.");
 						quit = true;
 						break;
 					}

@@ -14,7 +14,7 @@ endif
 
 USE_LIBFTSYS := 0
 USE_LIBSP := 0
-USE_WW := 0
+USE_WW := 1
 
 DEBUG ?= 0
 BONUS ?= 0
@@ -104,9 +104,13 @@ ft_shield MattDaemon: $(MAIN_DEPS)
 	$(LD) $(LDFLAGS) -o $@ $(LINK_DEPS) 
 ifeq ($(DEBUG), 0)
 	strip -xXs $@
-endif
+else
 ifeq ($(USE_WW), 1)
-	$(WW_BIN) -p 'none' $@
+	mv $@ $@.tmp
+	rm -f $@
+	$(WW_BIN) -p none -o $@ $@.tmp
+	rm -f $@.tmp
+endif
 endif
 
 matt-daemon:
@@ -137,6 +141,9 @@ $(LIBFTSTD): $(LIBFTSTD_DIR)/Makefile
 $(LIBSP): $(LIBSP_DIR)/Makefile
 	$(MAKE) -C $(LIBSP_DIR) -j$(shell nproc)
 
+$(WW_BIN):
+	$(MAKE) -C $(WW_DIR) -j$(shell nproc) PEDANTIC=0
+
 oclean:
 	rm -rf $(BUILD_DIR)
 
@@ -147,6 +154,9 @@ endif
 ifeq ($(USE_LIBSP), 1)
 	$(MAKE) -C $(LIBSP_DIR) clean
 endif
+ifeq ($(USE_WW), 1)
+	$(MAKE) -C $(WW_DIR) clean
+endif
 
 fclean: oclean
 ifeq ($(USE_LIBFTSYS), 1)
@@ -154,6 +164,9 @@ ifeq ($(USE_LIBFTSYS), 1)
 endif
 ifeq ($(USE_LIBSP), 1)
 	$(MAKE) -C $(LIBSP_DIR) fclean
+endif
+ifeq ($(USE_WW), 1)
+	$(MAKE) -C $(WW_DIR) fclean
 endif
 	rm -rf ft_shield MattDaemon 
 

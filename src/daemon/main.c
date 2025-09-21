@@ -6,7 +6,7 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:06:32 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/06 21:30:36 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/09/21 17:53:45 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 #include <shield/daemon.h>
 #include <shield/le_function.h>
 #include <stdbool.h>
-#include <string.h>
 #include <sys/file.h>
 #include <unistd.h>
 
