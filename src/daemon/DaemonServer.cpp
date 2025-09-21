@@ -330,11 +330,21 @@ void DaemonServer::run()
 {
 	MLOG("Server running, process id: " + std::to_string(le_getpid()));
 
-	while (!sig_received)
+	while (!sig_received || sig_received == SIGUSR1)
 	{
+		if (sig_received == SIGUSR1)
+		{
+			MLOG("Another daemon instance is already running, not starting another.");
+			sig_received = 0;
+		}
 		DEBUG("Polling for events on %d connections\n", current_conn);
 		if (poll(this->pollfd_array, FT_SHIELD_MAX_CLIENTS + 1, FT_SHIELD_TIMEOUT * 1000) == -1)
 		{
+			if (sig_received == SIGUSR1)
+			{
+				MLOG("Another daemon instance is already running, not starting another.");
+				sig_received = 0;
+			}
 			if (sig_received != 0)
 			{
 				#if MATT_MODE
@@ -342,7 +352,7 @@ void DaemonServer::run()
 				#endif
 				break ;
 			}
-			MERR("Poll failed, continuing.");
+			DEBUG("Poll failed, continuing.\n");
 			continue ;
 		}
 		DEBUG("got %d events\n", this->pollfd_array[0].revents);

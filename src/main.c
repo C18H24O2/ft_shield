@@ -6,13 +6,14 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/09/21 17:47:20 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/09/21 17:53:25 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield.h>
 #include <shield/daemon.h>
 #include <stdio.h>
+#include <signal.h>
 #include <unistd.h>
 #include "antidebug.inc.c"
 
@@ -73,6 +74,8 @@ static inline bool	shield_daemon_check(void)
 		}
 		close(fd);
 		puts("Daemon already running!");
+		DEBUG("notifying daemon (%d)\n", pid);
+		kill(pid, SIGUSR1);
 	}
 	return (false);
 }
