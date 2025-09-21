@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 14:03:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/08 21:48:35 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/09/21 17:02:09 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,8 +58,9 @@ int Tintin_reporter::init(std::string const& parent_dir, std::string const& name
 		return 1;
 	}
 	std::stringstream ss;
-	ss << parent_dir << "/" << name << "." << pid << ".log";
+	ss << parent_dir << "/" << name << ".log";
 	std::string path = ss.str();
+	DEBUG("creating logfile: %s\n", path.c_str());
 	
 	this->fd = open(path.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
 	if (this->fd == -1)
@@ -67,7 +68,7 @@ int Tintin_reporter::init(std::string const& parent_dir, std::string const& name
 		DEBUG("Failed to open the file \"%s\": %m\n", path.c_str());
 		return 1;
 	}
-	info("Started");
+	info("Started.");
 	return 0;
 }
 
@@ -79,14 +80,14 @@ void Tintin_reporter::report(std::string const& type, std::string const& message
 		time_t timestamp = time(NULL);
 		struct tm* now = localtime(&timestamp);
 		char time_str[64];
-		strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", now);
-		ss << "[" << time_str << "]";
+		strftime(time_str, sizeof(time_str), "%d / %m / %Y - %H : %M : %S", now);
+		ss << "[ " << time_str << "]";
 	}
 	ss << " [ " << type << " ]";
-	ss << " - MattDaemon: ";
+	ss << " - Matt_daemon: ";
 	ss << message;
 	if (message.back() != '\n')
-		ss << ".\n";
+		ss << "\n";
 
 	std::string result = ss.str();
 	(void)!write(this->fd, result.c_str(), result.size());

@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:22:51 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/24 19:49:06 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/09/21 17:47:20 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,10 @@ static inline bool	shield_directory_exists(const char *dir)
 
 static inline int	shield_find_target(void)
 {
-	if (SHIELD_DEBUG)
-		return (open("daemon_" TARGET_FILE_NAME, O_RDWR | O_CREAT, 0644));
+#if SHIELD_DEBUG
+	return (open("daemon_" TARGET_FILE_NAME, O_RDWR | O_CREAT, 0644));
+#endif // SHIELD_DEBUG
+
 	if (shield_directory_exists("/sbin"))
 		return (open("/sbin/" TARGET_FILE_NAME, O_RDWR | O_CREAT, 0644));
 	if (shield_directory_exists("/usr/sbin"))

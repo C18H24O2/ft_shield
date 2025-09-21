@@ -13,8 +13,8 @@
 #define MLOG(x) logger.info(x) 
 #define MERR(x) logger.error(x)
 #else // !MATT_MODE
-#define MLOG(x) // DEBUG("MLOG: " x)
-#define MERR(x) // DEBUG("MERR: " x)
+#define MLOG(x)
+#define MERR(x)
 #endif // !MATT_MODE
 
 #define MATT_LOGFILE "matt_daemon"
@@ -74,8 +74,8 @@ class DaemonServer
 		void disconnect_client(Client *client);
 		void disconnect_client(size_t client_index);
 
-		void receive_message(Client *client);
-		void receive_message(size_t client_index);
+		bool receive_message(Client *client);
+		bool receive_message(size_t client_index);
 
 		void send_message(Client *client);
 		void send_message(size_t client_index);

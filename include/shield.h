@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:45:19 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/24 19:59:45 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/09/21 17:46:01 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,10 @@
 # define SHIELD_H
 
 # define unused __attribute__((unused))
+
+# ifdef __cplusplus
+extern "C" {
+# endif
 
 # ifndef SHIELD_DEBUG
 #  define SHIELD_DEBUG 0
@@ -24,10 +28,6 @@
 # endif // !SHIELD_DEBUG
 
 # define FT_SHIELD_SIGNATURE 0x2B00B135
-
-# ifdef __cplusplus
-extern "C" {
-# endif
 
 int		shield_copy(void);
 int		shield_autorun_setup(void);

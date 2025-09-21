@@ -8,7 +8,6 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <vector>
 #include <signal.h>
 #include "shield.h"
 
@@ -48,14 +47,20 @@ DaemonServer::DaemonServer(char password_hash[32])
 	this->current_conn = 0;
 }
 
-DaemonServer::~DaemonServer() { }
+DaemonServer::~DaemonServer() {
+	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++) {
+		if (this->client_list[i].state != ClientState::UNUSED)
+			this->disconnect_client(i);
+	}
+	close(this->pollfd_array[0].fd);
+}
 
 int DaemonServer::init()
 {
 #if MATT_MODE
 	if (this->logger.init(MATT_LOGFILE_DIR, MATT_LOGFILE) != 0)
 		return 1;
-	MLOG("Server initializing...");
+	MLOG("Server initializing...\n");
 #endif
 
 	addrinfo hints, *servinfo, *tmp;
@@ -84,7 +89,7 @@ int DaemonServer::init()
 	for (tmp = servinfo; tmp != NULL; tmp = tmp->ai_next)
 	{
 		this->pollfd_array[0].fd = socket(tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol);
-		if (this->pollfd_array[0].fd== -1)
+		if (this->pollfd_array[0].fd == -1)
 			continue;
 		DEBUG("Created socket %d\n", this->pollfd_array[0].fd);
 		if (setsockopt(this->pollfd_array[0].fd, SOL_SOCKET, SO_REUSEADDR, &opt_on, sizeof(opt_on)) == -1)
@@ -108,20 +113,20 @@ int DaemonServer::init()
 
 	if (tmp == NULL)
 	{
-		MERR("Failed to bind to any address\n");
+		MERR("Failed to bind to any address.");
 		freeaddrinfo(servinfo);
 		return 1;
 	}
 	freeaddrinfo(servinfo);
 	if (fcntl(this->pollfd_array[0].fd, F_SETFL, O_NONBLOCK) == -1)
 	{
-		MERR("Failed to set server socket as non-blocking\n");
+		MERR("Failed to set server socket as non-blocking.");
 		close(this->pollfd_array[0].fd);
 		return 1;
 	}
 	if (listen(this->pollfd_array[0].fd, SOMAXCONN) == -1)
 	{
-		MERR("Failed to listen on server socket\n");
+		MERR("Failed to listen on server socket.");
 		close(this->pollfd_array[0].fd);
 		return 1;
 	}
@@ -136,7 +141,7 @@ int DaemonServer::init()
 		signal(i, handle_signals); 
 	}
 
-	MLOG("Server initialized");
+	MLOG("Server initialized.");
 
 	return 0;
 }
@@ -218,10 +223,10 @@ void DaemonServer::disconnect_client(size_t client_index)
 	disconnect_client(&this->client_list[client_index]);
 }
 
-void DaemonServer::receive_message(Client *client)
+bool DaemonServer::receive_message(Client *client)
 {
 	if (client == NULL || client->state == ClientState::UNUSED)
-		return ;
+		return (true);
 
 	char buffer[FT_SHIELD_MESSAGE_SIZE];	// uuuh luh 4kB size oui oui (way too much for what we need but eh)
 
@@ -236,13 +241,16 @@ void DaemonServer::receive_message(Client *client)
 				client->state = ClientState::DISCONNECTED;
 			else if (errno != EAGAIN && errno != EWOULDBLOCK) // some other error occurred
 				client->state = ClientState::DISCONNECTED;
-			return ;
+			return (true);
 		}
 		client->input_buffer.append(buffer, rec_bytes);
 		if (rec_bytes < FT_SHIELD_MESSAGE_SIZE)
-			break ;
+			break;
 	}
-	MLOG("Received message from client " + std::to_string(client->index) + ": " + client->input_buffer);
+	if (client->input_buffer == "quit")
+		return (false);
+	MLOG("User input: " + client->input_buffer);
+	return (true);
 }
 
 #if SHIELD_DEBUG
@@ -265,11 +273,11 @@ void print_client_info(const Client &client)
 # define print_client_info(x)
 #endif
 
-void DaemonServer::receive_message(size_t client_index)
+bool DaemonServer::receive_message(size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
-		return ;
-	receive_message(&this->client_list[client_index]);
+		return (true);
+	return (receive_message(&this->client_list[client_index]));
 }
 
 void DaemonServer::send_message(Client *client)
@@ -320,7 +328,7 @@ void DaemonServer::check_activity(size_t client_index)
 
 void DaemonServer::run()
 {
-	MLOG("Server running, process id: " + std::to_string(le_getpid()) + "\n");
+	MLOG("Server running, process id: " + std::to_string(le_getpid()));
 
 	while (!sig_received)
 	{
@@ -330,14 +338,15 @@ void DaemonServer::run()
 			if (sig_received != 0)
 			{
 				#if MATT_MODE
-				this->logger.info("Received signal (" + std::string(le_strsignal(sig_received)) + "), stopping server");
+				this->logger.info("Received signal (" + std::string(le_strsignal(sig_received)) + "), stopping server.");
 				#endif
 				break ;
 			}
-			MLOG("Poll failed, continuing");
+			MERR("Poll failed, continuing.");
 			continue ;
 		}
 		DEBUG("got %d events\n", this->pollfd_array[0].revents);
+		bool quit = false;
 		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS + 1; i++)		// data receive pass && timeout set pass
 		{
 			// DEBUG("receive/connect %zu\n", i);
@@ -356,7 +365,12 @@ void DaemonServer::run()
 				{
 					// print_client_info(this->client_list[i - 1]); // Print client info for debugging
 					DEBUG("Received message on client socket %zu\n", i - 1);
-					this->receive_message(i - 1);	// received message on a client socket, receive message
+					if (!this->receive_message(i - 1)) {	// received message on a client socket, receive message
+						// We want to quit, explode.
+						this->logger.info("Received quit command (client " + std::to_string(i - 1) + "), exiting.");
+						quit = true;
+						break;
+					}
 				}
 			}
 			if (i != 0 && this->client_list[i - 1].state == ClientState::CONNECTED)
@@ -364,6 +378,8 @@ void DaemonServer::run()
 				this->check_activity(i - 1);		//  for each fd, we check what time it was since last update, and set any inactive client to be disconnected
 			}
 		}
+		if (quit)
+			break;
 
 		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)		// data send pass and disconnect pass
 		{
@@ -384,6 +400,6 @@ void DaemonServer::run()
 		}
 	}
 
-	MLOG("Server stopped");
+	MLOG("Server stopped.");
 }
 

@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/24 19:58:10 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/09/21 17:47:20 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ static inline bool	shield_daemon_check(void)
 		if (pid == -1 || !shield_daemon_alive(pid))
 		{
 			// Invalid pid, let's take over
-			DEBUG("Daemon lockfile found, but pid (%d) is not alive, taking over", pid);
+			DEBUG("Daemon lockfile found, but pid (%d) is not alive, taking over\n", pid);
 			close(fd);
 			unlink(DAEMON_LOCK_FILE);
 			return (true);

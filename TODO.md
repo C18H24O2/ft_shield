@@ -1,23 +1,22 @@
 # TODO
 
-## Antidebug
+## matt-daemon
 
-- [x] `LD_PRELOAD` check
-- [ ] `fakeroot` parent check
-- [ ] True root check (i.e. write to `/<random-shit>` and read from it to check if it's actually been written)
+- Test matt-daemon with multiple server launch [DONE]
+  - Should log
+  - To fix this:
+    - Store the PID of the daemon in a file
+    - When a new daemon tries to spawn, check that file, and send a signal to the running daemon
+    - Also check if it's still alive
 
+- matt-daemon should exit when sending "quit" """command"""
 
+## ft_shield
 
-## Server
-
-### Setup
- - [ ] Port Binding & listen
- - [ ] Password hashing and verification
- - [ ] login
- - [ ] client kicking
-
-### Commands
- - [ ] help
- - [ ] shell
- - [ ] webcam
- - [ ] screenshot
+- password
+  - Specified in Makefile
+    - Should be hashed
+    - Passed as -D param
+- DaemonServer
+  - Should check password on connection
+  - client timeout?

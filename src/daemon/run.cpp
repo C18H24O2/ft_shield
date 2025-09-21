@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 01:18:29 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/07/17 14:40:28 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/09/21 16:43:58 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void	shield_daemon_run(void)
 
 	if (server.init())
 	{
-		LOG_BUT_ONLY_IF_MATT_OTHERWISE_DEBUG("Failed to initialize the server\n");
+		LOG_BUT_ONLY_IF_MATT_OTHERWISE_DEBUG("Failed to initialize the server.\n");
 		return ;
 	}
 	server.run();
