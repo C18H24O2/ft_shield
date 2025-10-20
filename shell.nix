@@ -22,7 +22,7 @@ in
       cmake
       meson
 
-      # vagrant
+      vagrant
       (pkgs.writeScriptBin "nuke-amd-kvm" ''
         #!${pkgs.stdenv.shell}
         set -euo pipefail
