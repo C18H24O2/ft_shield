@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:42:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/07/17 02:07:21 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/17 23:43:23 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include <string.h>
 #include <sys/auxv.h>
 #include <sys/ptrace.h>
+#include <sys/prctl.h>
+#include <linux/prctl.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -101,13 +103,13 @@ static inline int	shield_yeet(void)
 __attribute__((always_inline))
 static inline int	shield_antidebug(void)
 {
-	const int		ret = ptrace(PTRACE_TRACEME, 0, 1, 0);
+	const int		ret = prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0) == -1;
 	time_t			start;
 
-	DEBUG("antidebug/ptrace: %d\n", ret);
+	DEBUG("antidebug/prctl: %d\n", ret);
 	if (ret < 0)
 		return (shield_yeet());
-	ptrace(PTRACE_DETACH, 0, NULL, NULL);
+	prctl(PR_SET_DUMPABLE, 0);
 	DEBUG("antidebug/ld_preload: %s\n", getenv("LD_PRELOAD"));
 	if (getenv("LD_PRELOAD"))
 		return (0);

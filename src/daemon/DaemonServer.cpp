@@ -16,7 +16,7 @@ int sig_received = 0;
 void handle_signals(int sig)
 {
 	sig_received = sig;
-	DEBUG("Received signal!\n");
+	DEBUG("Received signal '%s' (%d)!\n", le_strsignal(sig), sig);
 	return ;
 }
 
@@ -135,11 +135,16 @@ int DaemonServer::init()
 	this->pollfd_array[0].revents = 0;
 
 	// Handle all possible (reasonable) signals
+	struct sigaction sa;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = handle_signals;
+	sa.sa_flags = 0;
 	for (int i = 1; i < NSIG; i++) {
-		if (i == SIGCONT || i == SIGWINCH || i == SIGTSTP || i == SIGTTIN || i == SIGTTOU)
-			continue;
-		signal(i, handle_signals); 
+		if (sigaction(i, &sa, NULL) == -1) {
+			MERR("sigaction failed for signal " + std::to_string(i));
+		}
 	}
+	
 
 	MLOG("Server initialized.");
 
