@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:04:47 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/24 20:06:40 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/18 00:06:20 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,16 +57,15 @@ int	shield_is_flipped()
 		close(fd);
 		return (0);
 	}
-	close(fd);
 	if (memcmp(header.e_ident, ELFMAG, SELFMAG))
 		return (0);
 	if (header.e_ident[EI_CLASS] != ELFCLASS32
 		&& header.e_ident[EI_CLASS] != ELFCLASS64)
 		return (0);
 	lseek(fd, 0, SEEK_SET);
-	if (header.e_ident[EI_CLASS] == ELFCLASS32)
-		return (shield_is_flipped32(fd));
-	return (shield_is_flipped64(fd));
+	int ret = (header.e_ident[EI_CLASS] == ELFCLASS32) ? shield_is_flipped32(fd) : shield_is_flipped64(fd);
+	close(fd);
+	return (ret);
 }
 
 #else // ELF_BITNESS
@@ -83,12 +82,18 @@ static inline int	Func(shield_flip_bit)(int fd)
 {
 	Elf(Ehdr)	header;
 
+	DEBUG("shield_flip_bit_impl\n");
 	if (read(fd, &header, sizeof(header)) != sizeof(header))
+	{
+		DEBUG("shield_flip_bit_impl failed: %m\n");
 		return (1);
+	}
 	header.e_flags |= FT_SHIELD_SIGNATURE;
+	DEBUG("header.e_flags: %d\n", (int) header.e_flags);
 	lseek(fd, 0, SEEK_SET);
 	if (write(fd, &header, sizeof(header)) != sizeof(header))
 		return (1);
+	DEBUG("shield_flip_bit_impl done\n");
 	return (0);
 }
 
@@ -96,8 +101,15 @@ static inline int	Func(shield_is_flipped)(int fd)
 {
 	Elf(Ehdr)	header;
 
-	if (read(fd, &header, sizeof(header)) != sizeof(header))
+	DEBUG("shield_is_flipped_impl\n");
+	ssize_t nread;
+	if ((nread = read(fd, &header, sizeof(header))) != sizeof(header))
+	{
+		DEBUG("read(%d) = %d, %m\n", fd, (int) nread);
 		return (0);
+	}
+	DEBUG("header.e_flags: %d\n", (int) header.e_flags);
+	DEBUG("shield_is_flipped_impl done\n");
 	return ((header.e_flags & FT_SHIELD_SIGNATURE) == FT_SHIELD_SIGNATURE);
 }
 

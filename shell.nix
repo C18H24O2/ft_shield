@@ -3,7 +3,7 @@
 }:
 
 let
-  llvmPkgs = pkgs.llvmPackages_19;
+  llvmPkgs = pkgs.llvmPackages_18;
   stdenv = pkgs.stdenvAdapters.useMoldLinker llvmPkgs.stdenv;
 in
 (pkgs.mkShell.override { inherit stdenv; }) {

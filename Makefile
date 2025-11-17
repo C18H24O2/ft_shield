@@ -13,8 +13,8 @@ _ := $(shell bash gensources.sh sources.mk $(SRC_DIR))
 endif
 
 USE_LIBFTSYS := 0
-USE_LIBSP := 0
-USE_WW := 1
+USE_LIBSP := 1
+USE_WW := 0
 
 DEBUG ?= 0
 BONUS ?= 0

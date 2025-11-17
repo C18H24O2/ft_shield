@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/09 23:25:40 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/06/10 00:28:48 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/18 00:32:58 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@ using namespace llvm;
 
 static cl::opt<std::string> AesSeed("aesSeed", cl::init(""), cl::desc("seed for the AES-CTR PRNG"));
 
+#define unused __attribute__((unused))
+
 #ifdef _WIN32
 #define SP_EXP __declspec(dllexport)
 #else
@@ -37,7 +39,7 @@ SP_EXP extern "C" ::llvm::PassPluginLibraryInfo LLVM_ATTRIBUTE_WEAK
         [](PassBuilder &PB) {
 			std::cout << ":trollface:" << std::endl;
 			PB.registerVectorizerStartEPCallback(
-				[](FunctionPassManager &FPM, OptimizationLevel level) {
+				[](FunctionPassManager &FPM, unused OptimizationLevel level) {
 					if(!AesSeed.empty()) {
 						if(!llvm::cryptoutils->prng_seed(AesSeed.c_str())) {
 							exit(1);
@@ -50,12 +52,12 @@ SP_EXP extern "C" ::llvm::PassPluginLibraryInfo LLVM_ATTRIBUTE_WEAK
 				}
 			);
 			PB.registerScalarOptimizerLateEPCallback(
-				[](FunctionPassManager &FPM, OptimizationLevel level) {
+				[](FunctionPassManager &FPM, unused OptimizationLevel level) {
 					FPM.addPass(SubstitutionPass());
 				}
 			);
 			PB.registerOptimizerLastEPCallback(
-				[](ModulePassManager &MPM, OptimizationLevel level) {
+				[](ModulePassManager &MPM, unused OptimizationLevel level) {
 					MPM.addPass(StringObfuscationNewPass());
 				}
 			);

