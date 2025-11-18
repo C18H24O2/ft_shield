@@ -52,7 +52,7 @@ bool Flattening::runOnFunction(Function &F) {
   // Do we obfuscate
   if (toObfuscate(FlatteningArg, tmp, "fla")) {
     if (flatten(tmp)) {
-      outs() << "Apply flatten obfuscation for " << F.getName() << "\n";
+      outs() << "[libSP] Apply flatten obfuscation for " << F.getName() << "\n";
       ++Flattened;
     }
   }

@@ -168,7 +168,7 @@ struct BogusControlFlow : public FunctionPass {
     }
     // If fla annotations
     if (toObfuscate(BogusControlFlowFlag, &F, "bcf")) {
-      outs() << "Apply bogus control flow obfuscation for " << F.getName()
+      outs() << "[libSP] Apply bogus control flow obfuscation for " << F.getName()
              << "\n";
       bogus(F);
       doF(*F.getParent());

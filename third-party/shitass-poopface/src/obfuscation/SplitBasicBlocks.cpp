@@ -80,7 +80,7 @@ bool SplitBasicBlock::runOnFunction(Function &F) {
 
   // Do we obfuscate
   if (toObfuscate(SplitFlag, tmp, "split")) {
-    outs() << "Apply split obfuscation for " << F.getName() << "\n";
+    outs() << "[libSP] Apply split obfuscation for " << F.getName() << "\n";
     split(tmp);
     ++Split;
   }

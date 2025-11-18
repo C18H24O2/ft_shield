@@ -8,4 +8,4 @@ SRCS += obfuscation/SplitBasicBlocks.cpp
 SRCS += obfuscation/StringObfuscation.cpp
 SRCS += obfuscation/Substitution.cpp
 SRCS += obfuscation/Utils.cpp
-SRCS += Register.cpp
+SRCS += PluginMain.cpp

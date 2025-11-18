@@ -130,7 +130,7 @@ bool Substitution::runOnFunction(Function &F) {
 
   // Do we obfuscate
   if (toObfuscate(SubstitutionFlag, tmp, "sub")) {
-    outs() << "Apply substitution obfuscation for " << F.getName() << "\n";
+    outs() << "[libSP] Apply substitution obfuscation for " << F.getName() << "\n";
     substitute(tmp);
     return true;
   }

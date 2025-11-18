@@ -231,7 +231,7 @@ private:
     appendToGlobalCtors(*mod, fdecode, 0);
     obf_inner::flatten(fdecode);
     obf_inner::bogus(fdecode);
-    outs() << "Apply string obfuscation for " << mod->getName() << "\n";
+    outs() << "[libSP] Apply string obfuscation for " << mod->getName() << "\n";
   }
 };
 
