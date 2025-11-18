@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:42:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/17 23:43:23 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/18 10:30:53 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,49 @@ static inline int	shield_check_parent(char *parent)
 	if (strstr(parent, "lldb"))
 		return (1);
 	return (0);
+}
+
+static void shield_close(int *fd)
+{
+	if (fd && *fd >= 0)
+		close(*fd);
+}
+
+__attribute__((always_inline))
+static inline int	shield_check_status(void)
+{
+#define STATUS_BUF_SIZE 256
+	char	buf[STATUS_BUF_SIZE + 1];
+	__attribute__((cleanup(shield_close)))
+	int		fd = open("/proc/self/status", O_RDONLY);
+
+	if (fd < 0)
+		return (0);
+	while (1)
+	{
+		memset(buf, 0, sizeof(buf));
+		const int	nread = read(fd, buf, STATUS_BUF_SIZE);
+		if (nread < 0)
+			break ;
+		if (nread == 0)
+			break ;
+		// DEBUG("antidebug/status buf: %s\n", buf);
+		char *line = strstr(buf, "TracerPid:");
+		if (line)
+		{
+			DEBUG("antidebug/status line: %s\n", line);
+			line += strlen("TracerPid:");
+			int i = atoi(line);
+			if (i > 0)
+			{
+				DEBUG("antidebug/status found tracer: %d\n", i);
+				return (1);
+			}
+			return (0);
+		}
+	}
+	return (0);
+#undef STATUS_BUF_SIZE
 }
 
 __attribute__((always_inline))
@@ -114,6 +157,8 @@ static inline int	shield_antidebug(void)
 	if (getenv("LD_PRELOAD"))
 		return (0);
 	start = time(NULL);
+	if (shield_check_status())
+		return (0);
 	if (shield_detect_parent())
 		return (shield_yeet());
 	if (shield_nearheap())
