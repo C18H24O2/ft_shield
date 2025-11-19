@@ -142,7 +142,7 @@ $(LIBSP): $(LIBSP_DIR)/Makefile
 	$(MAKE) -C $(LIBSP_DIR) -j$(shell nproc)
 
 $(WW_BIN):
-	$(MAKE) -C $(WW_DIR) -j$(shell nproc) PEDANTIC=0
+	$(MAKE) -C $(WW_DIR) -j$(shell nproc) PEDANTIC=0 CC="$(CC)"
 
 oclean:
 	rm -rf $(BUILD_DIR)
@@ -171,6 +171,17 @@ endif
 	rm -rf ft_shield MattDaemon 
 
 re: fclean all
+
+vm:
+	vagrant up
+	vagrant ssh
+
+print-type:
+	@echo TYPE: $(PROJECT_TYPE)
+	@echo NAME: $(NAME)
+
+copy-target: $(NAME)
+	cp $(NAME) $(TO)
 
 compile_commands.json: oclean
 	bear -- $(MAKE) USE_WARNINGS=1 $(OBJS) 

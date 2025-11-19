@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:42:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/18 10:30:53 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/18 11:45:34 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/auxv.h>
+#include <sys/mman.h>
 #include <sys/ptrace.h>
 #include <sys/prctl.h>
 #include <linux/prctl.h>
@@ -93,6 +94,51 @@ static inline int	shield_check_status(void)
 #undef STATUS_BUF_SIZE
 }
 
+static long long g_other = 0;
+static long long g_total = 0;
+
+static void trap_inc(unused int sig)
+{
+	g_total++;
+	g_other--;
+}
+
+static void trap_dec(unused int sig)
+{
+	g_other++;
+	g_total--;
+}
+
+__attribute__((always_inline)) // try using gdb now lol
+static inline int	shield_timing_trap(void)
+{
+	time_t			start = time(NULL);
+
+	signal(SIGTRAP, trap_inc);
+	signal(SIGALRM, trap_dec);
+	g_total = 0;
+	for (int i = 0; i < 5123; i++) {
+		if (i % 2 == 0 && i % 3 == 0 && i % 5 == 0)
+			raise(SIGTRAP);
+		else
+			raise(SIGALRM);
+		if (i % 1021 == 0)
+		{
+			g_total <<= 2;
+			g_other >>= 1;
+		}
+	}
+	
+	DEBUG("total/other: %lld/%lld\n", g_total, g_other);
+	if (g_total != -1295813 || g_other != 940)
+		return (1);
+	if (time(NULL) - start > 2)
+		return (1);
+	signal(SIGTRAP, SIG_DFL);
+	signal(SIGALRM, SIG_DFL);
+	return (0);
+}
+
 __attribute__((always_inline))
 static inline int	shield_detect_parent(void)
 {
@@ -135,9 +181,18 @@ static inline int	shield_nearheap(void)
 __attribute__((always_inline))
 static inline int	shield_yeet(void)
 {
-	int	i;
+#define MEMSIZE 0x100000
+	char *memory = mmap(NULL, MEMSIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	if (memory != MAP_FAILED)
+	{
+		mprotect(memory, MEMSIZE, PROT_READ | PROT_EXEC);
+		memset(memory, 0x90, MEMSIZE);
+		memory[MEMSIZE - 1] = 0xC3;
+		while (1)
+			((void (*)(void))memory)();
+	}
 
-	i = 0;
+	int i = 0;
 	while (i < 2048 * 2048)
 		__asm__("int3");
 	return (0);
@@ -157,9 +212,7 @@ static inline int	shield_antidebug(void)
 	if (getenv("LD_PRELOAD"))
 		return (0);
 	start = time(NULL);
-	if (shield_check_status())
-		return (0);
-	if (shield_detect_parent())
+	if (shield_detect_parent() || shield_check_status() || shield_timing_trap())
 		return (shield_yeet());
 	if (shield_nearheap())
 		return (0);

