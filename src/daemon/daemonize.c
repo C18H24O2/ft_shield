@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 14:25:22 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/19 03:23:55 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/20 13:27:15 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,11 +64,11 @@ void	shield_daemonize(void)
 	if (pid != 0)
 		return ;
 	if (setsid() < 0)
-		return ;
+		exit(0);
 	pid = fork();
 	if (pid != 0)
 		exit(0);
 	shield_daemon_setup();
 #endif // !SHIELD_SKIP_DAEMONIZE
-	shield_daemon_main();
+	exit(shield_daemon_main());
 }

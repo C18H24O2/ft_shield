@@ -6,7 +6,7 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:06:32 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/09/21 17:53:45 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/20 13:28:19 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,14 +19,14 @@
 
 static inline int	shield_daemon_lock(void)
 {
-	const int	lock_fd = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT, 0666);
+	const int	lock_fd = open(DAEMON_LOCK_FILE, O_RDWR | O_CREAT, 0644);
 
 	if (lock_fd < 0)
-		return (-1);
+		return (-2);
 	if (flock(lock_fd, LOCK_EX | LOCK_NB) != 0)
 	{
 		close(lock_fd);
-		return (-1);
+		return (-3);
 	}
 	int pid = le_getpid();
 	(void)!write(lock_fd, &pid, sizeof(pid)); // fuck it, write the bytes
@@ -37,6 +37,7 @@ int	shield_daemon_main(void)
 {
 	const int	lock_fd = shield_daemon_lock();
 
+	DEBUG("trying to lock %d (%m)\n", lock_fd);
 	if (lock_fd < 0)
 		return (1);
 	DEBUG("daemon started on pid %d\n", le_getpid());

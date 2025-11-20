@@ -6,14 +6,14 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 14:20:31 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/08/06 19:02:26 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/20 09:36:43 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #if SHIELD_DEBUG
-# define DAEMON_LOCK_FILE "./matt_daemon.lock"
+# define DAEMON_LOCK_FILE "/tmp/matt_daemon.lock"
 #else
 # define DAEMON_LOCK_FILE "/var/lock/matt_daemon.lock"
 #endif
