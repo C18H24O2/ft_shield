@@ -6,12 +6,16 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/11 01:21:57 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/24 18:53:17 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/20 15:12:33 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef UNISTD_H
 # define UNISTD_H
+
+# ifdef __cplusplus
+extern "C" {
+# endif // __cplusplus
 
 # define STDIN_FILENO 0
 # define STDOUT_FILENO 1
@@ -40,5 +44,9 @@ int		open(const char *pathname, int flags, ...);
 int		close(int fd);
 
 off_t	lseek(int fd, off_t offset, int whence);
+
+# ifdef __cplusplus
+} // extern "C"
+# endif // __cplusplus
 
 #endif // UNISTD_H

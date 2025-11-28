@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/25 16:45:10 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/25 16:46:54 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/20 15:17:55 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,11 @@ void	*memchr(const void *s, int c, size_t n)
 
 	if (!s || !n)
 		return (NULL);
-	p = s;
+	p = (unsigned char *) s;
 	while (n--)
+	{
 		if (*p++ == (unsigned char) c)
 			return ((void *) p - 1);
+	}
 	return (NULL);
 }

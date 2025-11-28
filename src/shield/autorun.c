@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:17:39 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/19 04:15:38 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/20 14:53:19 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,10 @@ static inline int	is_systemd(void)
 
 static inline int	is_cron_d(void)
 {
-	return access("/etc/cron.d", F_OK) == 0;
+	struct stat	st;
+	if (stat("/etc/cron.d", &st) == 0)
+		return (S_ISDIR(st.st_mode));
+	return (0);
 }
 
 static inline int	is_crontab(void)
@@ -120,19 +123,25 @@ static inline int	write_crontab_d(const char *schedule, const char *command)
 
 int	shield_autorun_setup(const char *binary_path)
 {
+	int error = 0;
 	if (is_systemd())
 	{
-		write_systemd_unit(binary_path);
+		DEBUG("Systemd detected, creating " SYSTEMD_UNIT_PATH);
+		error = write_systemd_unit(binary_path);
 	}
 	else if (is_cron_d())
 	{
-		write_crontab_d("@reboot", binary_path);
+		DEBUG("Cron detected, creating " CRONTAB_SERVICE_PATH);
+		error = write_crontab_d("@reboot", binary_path);
 	}
 	else if (is_crontab())
 	{
-		write_crontab_job("@reboot", binary_path);
+		DEBUG("Crontab detected, running `crontab`");
+		error = write_crontab_job("@reboot", binary_path);
 	}
-	return (1);
+	else
+		return (0);
+	return (!error);
 }
 
 #endif // !MATT_MODE

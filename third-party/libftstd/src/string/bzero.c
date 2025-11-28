@@ -6,13 +6,13 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/25 16:36:59 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/05/25 16:37:07 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/20 15:19:25 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <string.h>
 
-void	*bzero(void *s, size_t n)
+void	bzero(void *s, size_t n)
 {
-	return (memset(s, 0, n));
+	memset(s, 0, n);
 }

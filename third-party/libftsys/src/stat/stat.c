@@ -1,36 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   stdlib.h                                           :+:      :+:    :+:   */
+/*   stat.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/05/10 23:40:18 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/20 15:11:28 by kiroussa         ###   ########.fr       */
+/*   Created: 2025/11/20 15:06:39 by kiroussa          #+#    #+#             */
+/*   Updated: 2025/11/20 15:06:45 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef STDLIB_H
-# define STDLIB_H
+#include <sys/stat.h>
 
-# ifdef __cplusplus
-extern "C" {
-# endif // __cplusplus
-
-# define EXIT_FAILURE 1
-# define EXIT_SUCCESS 0
-
-void	atexit(void (*func)(void));
-void	exit(int status);
-
-# ifdef _FTSYS_SOURCE
-
-void	atexit_run_all(void);
-
-# endif // _FTSYS_SOURCE
-
-# ifdef __cplusplus
-} // extern "C"
-# endif // __cplusplus
-
-#endif // STDLIB_H
+int	stat(const char *path, struct stat *buf)
+{
+	return (-1);
+}
