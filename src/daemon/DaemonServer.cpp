@@ -257,6 +257,9 @@ bool DaemonServer::receive_message(Client *client)
 		return (false);
 #endif
 	MLOG("User input: " + client->input_buffer);
+
+	// TODO: cmd
+
 	return (true);
 }
 

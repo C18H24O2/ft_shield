@@ -55,6 +55,18 @@ typedef struct
 	std::string output_buffer;		// what the server sends to the client
 }	Client;
 
+#include <shield/commands.hpp>
+
+static const Command COMMANDS[] =
+{
+	{"shell", "shell", "Closes the connection temporairly and launches a shell", shield_cmd_shell},
+	{"help", "help [command]", "Provides help about the command list or a particular command", shield_cmd_help},
+	{"screenshot", "screenshot", "If a graphical session is running, takes a screenshot", shield_cmd_screenshot},
+	{"get", "get <path>", "Downloads a file from the server", shield_cmd_get},
+	{"put", "put <path>", "Uploads a file to the server", shield_cmd_put},
+	{NULL, NULL, NULL, NULL}
+};
+
 class DaemonServer
 {
 	private:

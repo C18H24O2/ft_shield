@@ -6,10 +6,11 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:06:32 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/20 13:28:19 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/28 22:29:19 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <errno.h>
 #include <fcntl.h>
 #include <shield/daemon.h>
 #include <shield/le_function.h>
@@ -30,6 +31,7 @@ static inline int	shield_daemon_lock(void)
 	}
 	int pid = le_getpid();
 	(void)!write(lock_fd, &pid, sizeof(pid)); // fuck it, write the bytes
+	errno = 0;
 	return (lock_fd);
 }
 
@@ -37,7 +39,7 @@ int	shield_daemon_main(void)
 {
 	const int	lock_fd = shield_daemon_lock();
 
-	DEBUG("trying to lock %d (%m)\n", lock_fd);
+	DEBUG("trying to lock on %s, got: %d (%m)\n", DAEMON_LOCK_FILE, lock_fd);
 	if (lock_fd < 0)
 		return (1);
 	DEBUG("daemon started on pid %d\n", le_getpid());

@@ -6,14 +6,15 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 14:25:22 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/20 13:27:15 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/28 22:29:05 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield/daemon.h>
+#include <stdlib.h>
 
 #if SHIELD_DEBUG
-# define SHIELD_SKIP_DAEMONIZE 0
+# define SHIELD_SKIP_DAEMONIZE 1
 #else // !SHIELD_DEBUG
 # define SHIELD_SKIP_DAEMONIZE 0
 #endif // SHIELD_DEBUG
