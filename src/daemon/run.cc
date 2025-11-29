@@ -1,20 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   run.cpp                                            :+:      :+:    :+:   */
+/*   run.cc                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 01:18:29 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/28 23:56:55 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/29 02:04:05 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
 #include <shield/daemon.h>
 #include "DaemonServer.hpp"
-#include "shield.h"
-#include <cstring>
 
 #if MATT_MODE
 #define LOG_BUT_ONLY_IF_MATT_OTHERWISE_DEBUG(x) std::cout << x

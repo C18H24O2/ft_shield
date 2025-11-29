@@ -190,6 +190,7 @@ void DaemonServer::accept_new_client()
 					this->pollfd_array[j].events |= POLLIN;	// we always want to poll for incoming data from a client, POLLOUT will be set when we have data to send
 					this->poll_metadata[j].client_index = i;
 					this->poll_metadata[j].fd_type = FD_CLIENT_SOCKET;
+					break;
 				}
 			}
 			this->client_list[i].index = this->current_conn;
@@ -396,7 +397,7 @@ void DaemonServer::run()
 			if (this->pollfd_array[i].fd < 0)	// Skip any unused fd
 				continue;
 
-			switch(this->poll_metadata[i].fd_type)
+			switch (this->poll_metadata[i].fd_type)
 			{
 				case FD_SERVER:		//Accept new clients
 				{
@@ -411,7 +412,7 @@ void DaemonServer::run()
 					size_t client_index = (size_t)this->poll_metadata[i].client_index;
 					if (this->pollfd_array[client_index].revents & POLLIN)
 					{
-						if (!receive_message(client_index));
+						if (!receive_message(client_index))
 						{
 							MLOG("Received quit command (client " + std::to_string(client_index) + "), exiting.");
 							quit = true;
@@ -421,7 +422,7 @@ void DaemonServer::run()
 						this->check_activity(client_index);
 					if (this->pollfd_array[client_index].revents & (POLLHUP | POLLERR)) //if the client hangs up or if the socket has an error we disconnect the client
 					{
-						DEBUG("Client %d error or hangup\n", client_index);
+						DEBUG("Client %zu error or hangup\n", client_index);
 						this->client_list[client_index].state = CLIENT_DISCONNECTED;
 					}
 					break;
@@ -430,7 +431,7 @@ void DaemonServer::run()
 				{
 					// I don't know what the fuck im doing here
 					size_t client_index = (size_t)this->poll_metadata[i].client_index;
-					if (this->client_list[client_index].state = CLIENT_DISCONNECTED)
+					if (this->client_list[client_index].state == CLIENT_DISCONNECTED)
 						break;
 					
 					if (this->pollfd_array[client_index].revents & POLLIN) //bro has shit to say
@@ -439,8 +440,10 @@ void DaemonServer::run()
 					}
 					break;
 				}
+				default:
+					break;
 			}
-			if (quit = true)
+			if (quit == true)
 				break;
 			
 			// if (this->pollfd_array[i].revents & POLLIN)
