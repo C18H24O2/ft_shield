@@ -20,9 +20,8 @@ void handle_signals(int sig)
 	return ;
 }
 
-DaemonServer::DaemonServer(char password_hash[32])
+DaemonServer::DaemonServer()
 {
-	memcpy(this->password_hash, password_hash, 32);
 	if (FT_SHIELD_MAX_CLIENTS >= 1)
 		this->should_accept = true;
 	else
@@ -150,7 +149,6 @@ int DaemonServer::init()
 			MERR("sigaction failed for signal " + std::to_string(i));
 		}
 	}
-	
 
 	MLOG("Server initialized.");
 
@@ -201,6 +199,7 @@ void DaemonServer::accept_new_client()
 			return ;
 		}
 	}
+	close(client_fd); // fuck you
 }
 
 void DaemonServer::clear_client(Client *client)
@@ -270,7 +269,7 @@ bool DaemonServer::receive_message(Client *client)
 			break;
 	}
 #if MATT_MODE
-	if (client->input_buffer == "quit")
+	if (client->input_buffer == "quit" || client->input_buffer == "quit\n")
 		return (false);
 #endif
 	MLOG("User input: " + client->input_buffer);

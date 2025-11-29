@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   copy.c                                             :+:      :+:    :+:   */
+/*   copy.cc                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:22:51 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/19 04:16:32 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/29 01:51:38 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ static inline int	shield_find_target(char **binary_path)
 {
 #define TARGET(name, flags, mode) do { \
 	DEBUG("Copying to " name "\n"); \
-	*binary_path = name; \
+	*binary_path = (char *) name; \
 	return (open(name, flags, mode)); \
 } while (0)
 

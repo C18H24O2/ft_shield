@@ -6,7 +6,7 @@
 #    By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/07/16 22:27:59 by kiroussa          #+#    #+#              #
-#    Updated: 2025/11/19 02:39:28 by kiroussa         ###   ########.fr        #
+#    Updated: 2025/11/28 22:44:08 by kiroussa         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,4 +53,4 @@ else
 	NAME := MattDaemon
 endif
 
-_ := $(info === Running GNU make for $(NAME) ===)
+_ := $(info === Running GNU make for $(NAME) (type=$(PROJECT_TYPE)) ===)

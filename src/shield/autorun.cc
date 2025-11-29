@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   autorun.c                                          :+:      :+:    :+:   */
+/*   autorun.cc                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:17:39 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/28 22:17:54 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/29 00:13:09 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,41 +50,6 @@ static inline int	is_cron_d(void)
 	if (stat("/etc/cron.d", &st) == 0)
 		return (S_ISDIR(st.st_mode));
 	return (0);
-}
-
-static inline int	is_crontab(void)
-{
-	const char *path = getenv("PATH");
-	if (!path || !*path)
-		path = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
-	char *our_path = calloc(strlen(path) + 1, sizeof(char));
-	int found = 0;
-	if (our_path)
-	{
-		strcpy(our_path, path);
-		for (int i = 0; our_path[i]; i++)
-		{
-			if (our_path[i] == ':')
-				our_path[i] = '\0';
-		}
-		char *curr = our_path;
-		while (*curr)
-		{
-			char *next = calloc(strlen(curr) + strlen("/crontab") + 1, sizeof(char));
-			if (next)
-			{
-				strcpy(next, curr);
-				strcat(next, "/crontab");
-				if (access(next, F_OK | X_OK) == 0)
-					found = 1;
-			}
-			free(next);
-			if (found)
-				break ;
-		}
-	}
-	free(our_path);
-	return (found);
 }
 
 static inline int	write_systemd_unit(const char *binary_path)
@@ -135,7 +100,7 @@ int	shield_autorun_setup(const char *binary_path)
 		DEBUG("Cron detected, creating " CRONTAB_SERVICE_PATH "\n");
 		error = write_crontab_d("@reboot", binary_path);
 	}
-	else if (is_crontab())
+	else if (shield_path_check("crontab"))
 	{
 		DEBUG("Crontab detected, running `crontab`\n");
 		error = write_crontab_job("@reboot", binary_path);

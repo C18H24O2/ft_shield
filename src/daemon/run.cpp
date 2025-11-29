@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 01:18:29 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/09/21 16:43:58 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/28 23:56:55 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,7 @@
 
 void	shield_daemon_run(void)
 {
-	char	password_hash[32];
-	memset(password_hash, 0, 32);
-	DaemonServer server(password_hash);
+	DaemonServer server;
 
 	if (server.init())
 	{

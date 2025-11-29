@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   antidebug.inc.c                                    :+:      :+:    :+:   */
+/*   antidebug.inc.cc                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:42:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/18 11:45:34 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/29 00:10:58 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <libgen.h>
 #include <limits.h>
 #include <shield.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -167,7 +168,7 @@ __attribute__((always_inline))
 static inline int	shield_nearheap(void)
 {
 	static unsigned char	bss;
-	const unsigned char		*probe = malloc(0x10);
+	const unsigned char		*probe = (unsigned char *) malloc(0x10);
 	int						ret;
 
 	if (!probe)
@@ -182,7 +183,7 @@ __attribute__((always_inline))
 static inline int	shield_yeet(void)
 {
 #define MEMSIZE 0x100000
-	char *memory = mmap(NULL, MEMSIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	char *memory = (char *) mmap(NULL, MEMSIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if (memory != MAP_FAILED)
 	{
 		mprotect(memory, MEMSIZE, PROT_READ | PROT_EXEC);

@@ -14,3 +14,4 @@ compile_commands.json
 .direnv/
 *.swp
 /development.mk
+/hasher3000

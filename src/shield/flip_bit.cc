@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   flip_bit.c                                         :+:      :+:    :+:   */
+/*   flip_bit.cc                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:04:47 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/18 00:06:20 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/29 00:14:34 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,9 @@
 
 #ifndef ELF_BITNESS
 # define ELF_BITNESS 32
-# include "flip_bit.c"
+# include "flip_bit.cc"
 # define ELF_BITNESS 64
-# include "flip_bit.c"
+# include "flip_bit.cc"
 
 int	shield_flip_bit(int fd)
 {

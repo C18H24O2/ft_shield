@@ -4,6 +4,7 @@
 PASSWORD ?= Password123
 
 include fuckery.mk
+
 -include development.mk
 
 ifeq ($(DEVELOPMENT), 1)
@@ -19,8 +20,14 @@ USE_WW := 0
 DEBUG ?= 0
 BONUS ?= 0
 
+_ := $(shell bash -c 'if [ ! -f hasher3000 ]; then cc -msse4.2 -mrdrnd -DHASH_MAIN=1 -O3 -o hasher3000 src/hash.cc; fi')
+
+ifeq ($(PROJECT_TYPE), 1)
 CC := clang++
-CFLAGS := -Wall -Wextra -Wno-unused-command-line-argument -DSHIELD_PASSWORD=\"$(shell echo PASSWORD | sha256sum | cut -d' ' -f1)\"
+else
+CC := clang
+endif
+CFLAGS := -Wall -Wextra -msse4.2 -Wno-unused-command-line-argument -DSHIELD_PASSWORD=\"$(shell ./hasher3000 $(PASSWORD))\"
 CFLAGS += 
 ifneq ($(USE_WARNINGS), 1)
 CFLAGS += -Werror
@@ -48,7 +55,7 @@ INC_DIR := include
 OBJ_DIR := $(BUILD_DIR)/obj
 
 #TODO: maybe move all .c to .cc or .cpp files
-CFLAGS += -xc -I$(INC_DIR)
+CFLAGS += -I$(INC_DIR)
 CXXFLAGS += -I$(INC_DIR)
 
 CFLAGS += $(EXTRA_CFLAGS)
@@ -80,7 +87,7 @@ CFLAGS += -I$(LIBFTSYS_DIR)/include -I$(LIBFTSTD_DIR)/include
 CXXFLAGS += -I$(LIBFTSYS_DIR)/include -I$(LIBFTSTD_DIR)/include
 endif
 
-OBJS := $(patsubst %.c,%.o,$(patsubst %.s,%.o,$(patsubst %.cpp,%.o,$(SRCS))))
+OBJS := $(patsubst %.c,%.o,$(patsubst %.s,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cc,%.o,$(SRCS)))))
 SRCS := $(addprefix $(SRC_DIR)/,$(SRCS))
 OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
 
@@ -131,6 +138,10 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(LIBFTSYS): $(LIBFTSYS_DIR)/Makefile
 	$(MAKE) -C $(LIBFTSYS_DIR) -j$(shell nproc)

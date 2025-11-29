@@ -6,11 +6,12 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 14:03:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/09/21 17:02:09 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/11/28 23:56:15 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #if MATT_MODE
+#define TINTIN_ARCHIVAL 1
 #include <shield/le_function.h>
 #include "Tintin_reporter.hpp"
 #include <unistd.h>
@@ -60,6 +61,80 @@ int Tintin_reporter::init(std::string const& parent_dir, std::string const& name
 	std::stringstream ss;
 	ss << parent_dir << "/" << name << ".log";
 	std::string path = ss.str();
+
+#if TINTIN_ARCHIVAL
+	struct stat s;
+	DEBUG("checking %s for archival\n", path.c_str());
+
+	if (stat(path.c_str(), &s) == 0)
+	{
+		DEBUG("old found, moving\n");
+		struct tm* tval = localtime(&s.st_mtime);
+		tval->tm_year += 1900;
+		tval->tm_mon += 1;
+		
+		std::string year_path = parent_dir + "/" + std::to_string(tval->tm_year);
+		if (mkdir(year_path.c_str(), 0755) == -1)
+		{
+			if (errno != EEXIST)
+				goto skip;
+		}
+		std::string month_path = year_path + "/" + std::to_string(tval->tm_mon);
+		if (mkdir(month_path.c_str(), 0755) == -1)
+		{
+			if (errno != EEXIST)
+				goto skip;
+		}
+
+		std::string timestamp_part = std::to_string(tval->tm_year) + "-" + std::to_string(tval->tm_mon) + "-" + std::to_string(tval->tm_mday)
+			+ "_" + std::to_string(tval->tm_hour) + "-" + std::to_string(tval->tm_min) + "-" + std::to_string(tval->tm_sec);
+
+		std::string new_path = month_path + "/" + timestamp_part + ".log";
+
+		int i = 1;
+		while (access(new_path.c_str(), F_OK) == 0)
+		{
+			new_path = month_path + "/" + timestamp_part + "-" + std::to_string(i) + ".log";
+			i++;
+		}
+
+		DEBUG("renaming %s to %s\n", path.c_str(), new_path.c_str());
+		if (rename(path.c_str(), new_path.c_str()) == -1)
+			goto skip;
+		DEBUG("done renaming\n");
+
+		path = new_path;
+
+		DEBUG("checking for tar\n");
+		if (shield_path_check("tar"))
+		{
+			std::string tar_path = month_path + "/" + timestamp_part + ".tar.gz";
+			i = 1;
+			while (access(tar_path.c_str(), F_OK) == 0)
+			{
+				tar_path = month_path + "/" + timestamp_part + "-" + std::to_string(i) + ".tar.gz";
+				i++;
+			}
+			DEBUG("tar found, compressing %s to %s\n", path.c_str(), tar_path.c_str());
+			std::string cmd = "tar -czf \'" + tar_path + "\' \'" + path + "\'";
+			DEBUG("running %s\n", cmd.c_str());
+			if (system(cmd.c_str()) == -1)
+				goto skip;
+			DEBUG("success, removing old logfile %s\n", path.c_str());
+			unlink(path.c_str());
+			path = tar_path;
+		}
+
+		goto end;
+	}
+	skip:
+	{
+		unlink(path.c_str());
+	}
+	end:
+#endif
+
+	path = ss.str();
 	DEBUG("creating logfile: %s\n", path.c_str());
 	
 	this->fd = open(path.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
