@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:45:19 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/29 01:53:09 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/12/09 21:43:37 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,18 +25,10 @@
 
 # define FT_SHIELD_SIGNATURE 0x2B00B135
 
-#if !MATT_MODE && __cplusplus
-extern "C" {
-#endif
-
 int		shield_copy(char **binary_path);
 int		shield_autorun_setup(const char *binary_path);
 int		shield_is_flipped();
 int		shield_flip_bit(int fd);
 int		shield_path_check(const char *name);
-
-#if !MATT_MODE && __cplusplus
-}
-#endif
 
 #endif // SHIELD_H
