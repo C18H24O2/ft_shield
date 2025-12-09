@@ -514,7 +514,12 @@ void DaemonServer::run()
 				}
 				case FD_CLIENT_SOCKET:
 				{
-					//check for messages to send then disconnect them if needed
+					if (this->client_list[this->poll_metadata[i].client_index].state == CLIENT_DISCONNECTED)
+					{
+						DEBUG("Disconnecting client %zu\n", this->poll_metadata[i].client_index);
+						this->disconnect_client(this->poll_metadata[i].client_index);
+						break;
+					}
 					break;
 				}
 				case FD_CLIENT_PTY:
