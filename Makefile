@@ -25,9 +25,9 @@ _ := $(shell bash -c 'if [ ! -f hasher3000 ]; then cc -msse4.2 -mrdrnd -DHASH_MA
 ifeq ($(PROJECT_TYPE), 1)
 CC := clang++
 else
-CC := clang
+CC := clang++
 endif
-CFLAGS := -Wall -Wextra -msse4.2 -Wno-unused-command-line-argument -DSHIELD_PASSWORD=\"$(shell ./hasher3000 $(PASSWORD))\"
+CFLAGS := -Wall -fcolor-diagnostics -Wextra -msse4.2 -Wno-unused-command-line-argument -DSHIELD_PASSWORD=\"$(shell ./hasher3000 $(PASSWORD))\"
 CFLAGS += 
 ifneq ($(USE_WARNINGS), 1)
 CFLAGS += -Werror

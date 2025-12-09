@@ -1,4 +1,4 @@
-#include <commands.hpp>
+#include <shield/commands.hpp>
 #include <sstream>
 
 int shield_cmd_help(Client *client, const char *args)
