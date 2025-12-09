@@ -22,6 +22,8 @@ in
       cmake
       meson
 
+      xorg.libX11.dev
+
       vagrant
       (pkgs.writeScriptBin "nuke-amd-kvm" ''
         #!${pkgs.stdenv.shell}
