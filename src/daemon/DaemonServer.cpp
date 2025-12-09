@@ -47,6 +47,7 @@ DaemonServer::DaemonServer()
 		this->client_list[i].input_buffer.clear();
 		this->client_list[i].output_buffer.clear();
 	}
+	this->shell_next = false;
 	this->current_conn = 0;
 }
 
@@ -275,7 +276,21 @@ bool DaemonServer::receive_message(Client *client)
 #endif
 	MLOG("User input: " + client->input_buffer);
 
-	// TODO: cmd
+	// Here depending on what "mode" the client is in":
+	// Standard mode just interprets and looks for commands sent to the server
+	// Shell mode passes the data to the connected shell given it is properly cut
+	// TODO: cmd + shell send
+	switch (client->pty_fd)
+	{
+		case (-1):	//The client does not Have a pty linked -> Normal mode
+		{
+			break;
+		}
+		default:	// anything else *should* be that the client has a shell
+		{
+			break;
+		}
+	}
 
 	return (true);
 }
@@ -418,8 +433,6 @@ void DaemonServer::run()
 							quit = true;
 						}
 					}
-					if (this->client_list[client_index].state == CLIENT_CONNECTED)		// we check activity on non authenticated clients, to kick anyone afk as they log in
-						this->check_activity(client_index);
 					if (this->pollfd_array[client_index].revents & (POLLHUP | POLLERR)) //if the client hangs up or if the socket has an error we disconnect the client
 					{
 						DEBUG("Client %zu error or hangup\n", client_index);
@@ -436,7 +449,7 @@ void DaemonServer::run()
 					
 					if (this->pollfd_array[client_index].revents & POLLIN) //bro has shit to say
 					{
-
+						receive_shell_data(client_index);
 					}
 					break;
 				}
@@ -486,11 +499,6 @@ void DaemonServer::run()
 				case FD_CLIENT_SOCKET:
 				{
 					//check for messages to send then disconnect them if needed
-					break;
-				}
-				case FD_CLIENT_PTY:
-				{
-					//check for info from client to send and disconnect??
 					break;
 				}
 			}

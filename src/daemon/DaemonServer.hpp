@@ -92,6 +92,7 @@ class DaemonServer
 		Client			client_list[FT_SHIELD_MAX_CLIENTS];
 		bool			should_accept;								// bool indicating if server should accept clients 
 		int				current_conn;								// number of currently connected clients
+		bool			shell_next;
 
 		void	accept_new_client();
 
