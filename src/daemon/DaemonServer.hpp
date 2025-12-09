@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef DAEMON_SERVER_HPP
+#define DAEMON_SERVER_HPP
 #include <ctime>
 #include <string>
 #include <sys/socket.h>
@@ -7,6 +7,7 @@
 #include <netdb.h>
 #include <poll.h>
 #include <string>
+#include <shield/commands.hpp>
 
 #if MATT_MODE
 #include "Tintin_reporter.hpp"
@@ -60,7 +61,7 @@ typedef struct
 	int client_index;
 }	FD_MetaData;
 
-typedef struct
+typedef struct Client
 {
 	int index;
 	struct pollfd* pollfd;
@@ -71,8 +72,6 @@ typedef struct
 	std::string output_buffer;		// what the server sends to the client
 	int pty_fd;
 }	Client;
-
-#include <shield/commands.hpp>
 
 static const Command COMMANDS[] =
 {
@@ -86,7 +85,7 @@ static const Command COMMANDS[] =
 
 class DaemonServer
 {
-	private:
+	public:
 		struct pollfd	pollfd_array[MAX_FD];						// MAX_FD is twice the max number of clients + 1 slot for the server
 		FD_MetaData		poll_metadata[MAX_FD];
 		Client			client_list[FT_SHIELD_MAX_CLIENTS];
@@ -120,10 +119,10 @@ class DaemonServer
 #if MATT_MODE
 		Tintin_reporter	logger;
 #endif
-
-	public:
 		DaemonServer();
 		~DaemonServer();
 		int		init();
 		void	run();
 };
+
+#endif // DAEMON_SERVER_HPP

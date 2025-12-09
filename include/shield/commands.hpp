@@ -10,28 +10,29 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include "DaemonServer.hpp"
-
 #ifndef COMMANDS_HPP
-# define COMMANDS_HPP
+#define COMMANDS_HPP
+class DaemonServer;					// forward declaration
+typedef struct Client Client;		// forward declaration
 
 typedef struct
 {
 	const char *command;
 	const char *usage;
 	const char *description;
-	int (*fn)(Client *client, const char *args);
+	int (*fn)(Client *client, DaemonServer *server, const char *args);
 }	Command;
 
 # define CMD_OK 0
 # define CMD_LOGOUT 1
 # define CMD_SPAWN_SHELL 2
 
-int	shield_cmd_help(Client *client, const char *args);
-int	shield_cmd_shell(Client *client, const char *args);
-int	shield_cmd_screenshot(Client *client, const char *args);
-int	shield_cmd_get(Client *client, const char *args);
-int	shield_cmd_put(Client *client, const char *args);
-int	shield_cmd_quit(Client *client, const char *args);
 
-#endif
+int	shield_cmd_help(Client *client, DaemonServer *server, const char *args);
+int	shield_cmd_shell(Client *client, DaemonServer *server, const char *args);
+int	shield_cmd_screenshot(Client *client, DaemonServer *server, const char *args);
+int	shield_cmd_get(Client *client, DaemonServer *server, const char *args);
+int	shield_cmd_put(Client *client, DaemonServer *server, const char *args);
+int	shield_cmd_quit(Client *client, DaemonServer *server, const char *args);
+
+#endif // COMMANDS_HPP

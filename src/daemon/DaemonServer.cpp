@@ -40,12 +40,13 @@ DaemonServer::DaemonServer()
 	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)
 	{
 		this->client_list[i].index = i;
-		this->client_list[i].pollfd = &this->pollfd_array[i + 1];
+		this->client_list[i].pollfd = NULL;
 		this->client_list[i].pty_fd = -1;
 		this->client_list[i].state = CLIENT_UNUSED;
 		this->client_list[i].last_seen = 0;
 		this->client_list[i].input_buffer.clear();
 		this->client_list[i].output_buffer.clear();
+		this->client_list[i].metadata = NULL;
 	}
 	this->shell_next = false;
 	this->current_conn = 0;
@@ -185,16 +186,18 @@ void DaemonServer::accept_new_client()
 		{
 			for (size_t j = 0; j < MAX_FD; j++)
 			{
-				if (this->poll_metadata->fd_type == FD_UNUSED)
+				if (this->poll_metadata[j].fd_type == FD_UNUSED)
 				{
 					this->pollfd_array[j].fd = client_fd;
 					this->pollfd_array[j].events |= POLLIN;	// we always want to poll for incoming data from a client, POLLOUT will be set when we have data to send
 					this->poll_metadata[j].client_index = i;
 					this->poll_metadata[j].fd_type = FD_CLIENT_SOCKET;
+					this->client_list[i].metadata = &this->poll_metadata[j];
+					this->client_list[i].pollfd = &this->pollfd_array[j];
 					break;
 				}
 			}
-			this->client_list[i].index = this->current_conn;
+			this->client_list[i].index = i;
 			this->client_list[i].state = CLIENT_CONNECTED;
 			time(&this->client_list[i].last_seen);
 			this->current_conn++;
@@ -209,11 +212,20 @@ void DaemonServer::clear_client(Client *client)
 	if (client == NULL)
 		return ;
 
-	client->pollfd->fd = -1;
-	client->pollfd->events = 0;
-	client->pollfd->revents = 0;
-	client->metadata->fd_type = FD_UNUSED;
-	client->metadata->client_index = -1;
+	if (client->pollfd != NULL)
+	{
+		client->pollfd->fd = -1;
+		client->pollfd->events = 0;
+		client->pollfd->revents = 0;
+	}
+	if (client->metadata != NULL)
+	{
+		client->metadata->fd_type = FD_UNUSED;
+		client->metadata->client_index = -1;
+	}
+
+	client->pollfd = NULL;
+	client->metadata = NULL;
 
 	client->state = CLIENT_UNUSED;
 	client->pty_fd = -1;
@@ -425,7 +437,7 @@ void DaemonServer::run()
 				case FD_CLIENT_SOCKET:	//check for received data from client socket
 				{
 					size_t client_index = (size_t)this->poll_metadata[i].client_index;
-					if (this->pollfd_array[client_index].revents & POLLIN)
+					if (this->pollfd_array[i].revents & POLLIN)
 					{
 						if (!receive_message(client_index))
 						{
@@ -433,7 +445,7 @@ void DaemonServer::run()
 							quit = true;
 						}
 					}
-					if (this->pollfd_array[client_index].revents & (POLLHUP | POLLERR)) //if the client hangs up or if the socket has an error we disconnect the client
+					if (this->pollfd_array[i].revents & (POLLHUP | POLLERR)) //if the client hangs up or if the socket has an error we disconnect the client
 					{
 						DEBUG("Client %zu error or hangup\n", client_index);
 						this->client_list[client_index].state = CLIENT_DISCONNECTED;
@@ -446,8 +458,7 @@ void DaemonServer::run()
 					size_t client_index = (size_t)this->poll_metadata[i].client_index;
 					if (this->client_list[client_index].state == CLIENT_DISCONNECTED)
 						break;
-					
-					if (this->pollfd_array[client_index].revents & POLLIN) //bro has shit to say
+					if (this->pollfd_array[i].revents & POLLIN) //bro has shit to say
 					{
 						receive_shell_data(client_index);
 					}
@@ -496,11 +507,23 @@ void DaemonServer::run()
 
 			switch(this->poll_metadata[i].fd_type)
 			{
+				case FD_SERVER:
+				{
+					// nothing to do for server fd here (shut up compiler)
+					break;
+				}
 				case FD_CLIENT_SOCKET:
 				{
 					//check for messages to send then disconnect them if needed
 					break;
 				}
+				case FD_CLIENT_PTY:
+				{
+					// nothing to do for pty fd here (shut up compiler)
+					break;
+				}
+				default:
+					break;
 			}
 			// DEBUG("send/disconnect %zu\n", i);
 			// print_client_info(this->client_list[i]); // Print client info for debugging
