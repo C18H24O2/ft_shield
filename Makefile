@@ -27,7 +27,7 @@ CC := clang++
 else
 CC := clang++
 endif
-CFLAGS := -Wall -fcolor-diagnostics -Wextra -msse4.2 -Wno-unused-command-line-argument -DSHIELD_PASSWORD=\"$(shell ./hasher3000 $(PASSWORD))\"
+CFLAGS := -Wall -fcolor-diagnostics -Wextra -msse4.2 -mrdrnd -Wno-unused-command-line-argument -DSHIELD_PASSWORD=\"$(shell ./hasher3000 $(PASSWORD))\"
 CFLAGS += 
 ifneq ($(USE_WARNINGS), 1)
 CFLAGS += -Werror
@@ -36,7 +36,7 @@ SHIELD_PORT ?= 4242
 CFLAGS += -DMATT_MODE=$(PROJECT_TYPE) -DFT_SHIELD_PORT=$(SHIELD_PORT) -DFT_SHIELD_PORT_STRING=\"$(SHIELD_PORT)\"
 
 LD := clang++
-LDFLAGS :=
+LDFLAGS := -lX11
 
 ifeq ($(USE_LIBFTSYS), 1)
 CFLAGS += -nostdlib -nostdinc -ffreestanding
