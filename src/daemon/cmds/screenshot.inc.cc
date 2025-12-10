@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/09 22:02:48 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/12/09 23:08:27 by kiroussa         ###   ########.fr       */
+/*   Updated: 2025/12/10 01:07:01 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,16 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <linux/limits.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <grp.h>
+#include <pwd.h>
 #include <shield.h>
 #include <immintrin.h>
 #include <unistd.h>
+
+[[gnu::weak]]
+int	shield_path_check(const char *name);
 
 #define ERR "ERROR|"
 
@@ -49,7 +56,7 @@ static inline void shield_random_string(size_t length, char *buffer)
 	buffer[length] = '\0';
 }
 
-static inline int	shield_tempfile0(const char *prefix, const char *suffix, size_t depth)
+static inline int	shield_tempfile0(const char *prefix, const char *suffix, char *file_name, size_t depth)
 {
 	int fd = -1;
 	if (depth < 64)
@@ -73,33 +80,46 @@ static inline int	shield_tempfile0(const char *prefix, const char *suffix, size_
 		if (access(buffer, F_OK) == 0)
 			fd = -2;
 		else
+		{
 			fd = open(buffer, O_CREAT | O_EXCL | O_RDWR, 0644);
+			if (fd > 0)
+				strlcpy(file_name, buffer, PATH_MAX);
+		}
 		// make sure to exit the scope to cleanup the stack from the buffer
 	}
 	if (fd == -2)
-		return shield_tempfile0(prefix, suffix, depth + 1);
+		return shield_tempfile0(prefix, suffix, file_name, depth + 1);
 	return fd;
 }
 
-static inline int	shield_tempfile(const char *prefix, const char *suffix)
+static inline int	shield_tempfile(const char *prefix, const char *suffix, char *file_name)
 {
-	return shield_tempfile0(prefix, suffix, 0);
+	return shield_tempfile0(prefix, suffix, file_name, 0);
 }
 
-static inline void close_file(int *fd)
+static inline void	shield_drop_privileges(void)
 {
-	if (fd && *fd >= 0)
-		close(*fd);
+	if (getuid() != 0)
+		return;
+	uid_t uid = 1000;
+	struct passwd *pw = getpwuid(uid);
+	if (!pw)
+		return;
+	gid_t gid = pw->pw_gid;
+	initgroups(pw->pw_name, gid);
+	setresgid(gid, gid, gid);
+	setresuid(uid, uid, uid);
+
+	setenv("USER", pw->pw_name, 1);
+    setenv("LOGNAME", pw->pw_name, 1);
+    setenv("HOME", pw->pw_dir, 1);
+    setenv("SHELL", pw->pw_shell, 1);
+
+	setenv("DISPLAY", ":0", 1);
 }
 
-// Thank you stackoverflow <3
-// https://stackoverflow.com/q/8249669
-[[gnu::used]]
-static const char *shield_screenshot(void)
+static const char *shield_take_screenshot(void)
 {
-	if (getenv("WAYLAND_DISPLAY"))
-		return (ERR "Wayland is not supported due to budget restrictions");
-
 	Display *display = XOpenDisplay(NULL);
 	if (!display)
 	{
@@ -128,8 +148,10 @@ static const char *shield_screenshot(void)
 	}
 	DEBUG("image: %p\n", image);
 
-	[[gnu::cleanup(close_file)]]
-	int fd = shield_tempfile("screenshot", ".ppm");
+	char file_name[PATH_MAX + 1];
+	memset(file_name, 0, sizeof(file_name));
+
+	int fd = shield_tempfile("screenshot", ".ppm", file_name);
 	if (fd == -1)
 	{
 		DEBUG("Failed to create tempfile: %m\n");
@@ -156,8 +178,71 @@ static const char *shield_screenshot(void)
 			write(fd, &blue, 1);
 		}
 	}
+	close(fd);
 
+	if (shield_path_check != NULL && shield_path_check("ffmpeg"))
+	{
+		char buffer[2048];
+		memset(buffer, 0, sizeof(buffer));
+		strlcat(buffer, "ffmpeg -y -i ", sizeof(buffer));
+		strlcat(buffer, file_name, sizeof(buffer));
+		strlcat(buffer, " -compression_level 9 ", sizeof(buffer));
+		char changed_out[sizeof(file_name)];
+		memcpy(changed_out, file_name, sizeof(file_name));
+		char *where = strstr(changed_out, ".ppm");
+		if (where)
+			memcpy(where, ".png", sizeof(".png"));
+		strlcat(buffer, changed_out, sizeof(buffer));
+		int ret = system(buffer);
+		if (ret == 0)
+		{
+			unlink(file_name);
+			memcpy(file_name, changed_out, sizeof(file_name));
+		}
+	}
+	
 	return ("Success");
+}
+
+// Thank you stackoverflow <3
+// https://stackoverflow.com/q/8249669
+[[gnu::used]]
+static const char *shield_screenshot(void)
+{
+	if (getenv("WAYLAND_DISPLAY"))
+		return (ERR "Wayland is not supported due to budget restrictions");
+
+	int fds[2];
+	if (pipe(fds) == -1)
+		return (ERR "Failed to create pipe");
+
+	int pid = fork();
+	if (pid == -1)
+	{
+		close(fds[0]);
+		close(fds[1]);
+		return (ERR "Failed to fork");
+	}
+
+	if (pid == 0)
+	{
+		close(fds[0]);
+		shield_drop_privileges();
+		// setenv("DISPLAY", ":0", 0);
+		const char *result = shield_take_screenshot();
+		write(fds[1], result, strlen(result));
+		close(fds[1]);
+		_exit(0);
+	}
+	close(fds[1]);
+	waitpid(pid, NULL, 0);
+
+	static char result[PATH_MAX + 1];
+	memset(result, 0, sizeof(result));
+	read(fds[0], result, PATH_MAX);
+	close(fds[0]);
+
+	return (result);
 }
 
 #ifdef SCREENSHOT_MAIN
