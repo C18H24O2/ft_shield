@@ -11,8 +11,8 @@
 
 #if MATT_MODE
 #include "Tintin_reporter.hpp"
-#define MLOG(x) logger.info(x) 
-#define MERR(x) logger.error(x)
+#define MLOG(x) that->logger.info(x) 
+#define MERR(x) that->logger.error(x)
 #else // !MATT_MODE
 #define MLOG(x)
 #define MERR(x)
@@ -68,6 +68,7 @@ typedef struct client
 	fd_metadata_t* metadata;
 	enum client_state state;
 	time_t last_seen;
+	//TODO: get rid of those buffers
 	std::string input_buffer;		// what the client sends to the server
 	std::string output_buffer;		// what the server sends to the client
 	int pty_fd;
@@ -80,40 +81,41 @@ static const command_t commands[] =
 	{"screenshot", "screenshot", "If a graphical session is running, takes a screenshot", shield_cmd_screenshot},
 	{"get", "get <path>", "Downloads a file from the server", shield_cmd_get},
 	{"put", "put <path>", "Uploads a file to the server", shield_cmd_put},
+	//TODO: stats command
 	{NULL, NULL, NULL, NULL}
 };
 
-struct DaemonServer
+typedef struct DaemonServer
 {
 	struct pollfd	pollfd_array[MAX_FD];						// MAX_FD is twice the max number of clients + 1 slot for the server
 	fd_metadata_t	poll_metadata[MAX_FD];
-	client_t			client_list[FT_SHIELD_MAX_CLIENTS];
+	client_t		client_list[FT_SHIELD_MAX_CLIENTS];
 	bool			should_accept;								// bool indicating if server should accept clients 
 	int				current_conn;								// number of currently connected clients
 	bool			shell_next;
 
-	void	accept_new_client();
+	void	accept_new_client(struct DaemonServer *that);
 
-	void	clear_client(client_t *client);				// will not do anything if client is NULL
+	void	clear_client(struct DaemonServer *that, client_t *client);				// will not do anything if client is NULL
 
-	void	disconnect_client(size_t client_index);
+	void	disconnect_client(struct DaemonServer *that, size_t client_index);
 
-	bool	receive_message(size_t client_index);
+	bool	receive_message(struct DaemonServer *that, size_t client_index);
 
-	void	send_message(size_t client_index);
+	void	send_message(struct DaemonServer *that, size_t client_index);
 
-	void	check_activity(size_t client_index);
+	void	check_activity(struct DaemonServer *that, size_t client_index);
 
 
-	void	receive_shell_data(size_t client_index);
-	void	send_shell_data(size_t client_index);
+	void	receive_shell_data(struct DaemonServer *that, size_t client_index);
+	void	send_shell_data(struct DaemonServer *that, size_t client_index);
 
 #if MATT_MODE
 	Tintin_reporter	logger;
 #endif
-	int		init();
-	void	run();
-	void	cleanup();
-};
+	int		init(struct DaemonServer *that);
+	void	run(struct DaemonServer *that);
+	void	cleanup(struct DaemonServer *that);
+}	DaemonServer;
 
 #endif // DAEMON_SERVER_HPP
