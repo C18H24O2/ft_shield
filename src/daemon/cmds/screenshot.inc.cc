@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/09 22:02:48 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/03 18:52:03 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/03 19:11:35 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,8 +107,8 @@ static inline void	shield_drop_privileges(void)
 		return;
 	gid_t gid = pw->pw_gid;
 	initgroups(pw->pw_name, gid);
-	setresgid(gid, gid, gid);
-	setresuid(uid, uid, uid);
+	(void)!setresgid(gid, gid, gid);
+	(void)!setresuid(uid, uid, uid);
 
 	setenv("USER", pw->pw_name, 1);
     setenv("LOGNAME", pw->pw_name, 1);
@@ -162,7 +162,7 @@ static const char *shield_take_screenshot(void)
 	unsigned long green_mask = image->green_mask;
 	unsigned long blue_mask = image->blue_mask;
 
-	write(fd, "P6\n", 3);
+	(void)!write(fd, "P6\n", 3);
 	dprintf(fd, "%d %d\n255\n", width, height);
 	for (int y = 0; y < height; y++)
 	{
@@ -173,9 +173,9 @@ static const char *shield_take_screenshot(void)
 			unsigned char blue = pixel & blue_mask;
 			unsigned char green = (pixel & green_mask) >> 8;
 			unsigned char red = (pixel & red_mask) >> 16;
-			write(fd, &red, 1);
-			write(fd, &green, 1);
-			write(fd, &blue, 1);
+			(void)!write(fd, &red, 1);
+			(void)!write(fd, &green, 1);
+			(void)!write(fd, &blue, 1);
 		}
 	}
 	close(fd);
@@ -229,7 +229,7 @@ static const char *shield_screenshot(void)
 		close(fds[0]);
 		shield_drop_privileges();
 		const char *result = shield_take_screenshot();
-		write(fds[1], result, strlen(result));
+		(void)!write(fds[1], result, strlen(result));
 		close(fds[1]);
 		_exit(0);
 	}
@@ -238,7 +238,7 @@ static const char *shield_screenshot(void)
 
 	static char result[PATH_MAX + 1];
 	memset(result, 0, sizeof(result));
-	read(fds[0], result, PATH_MAX);
+	(void)!read(fds[0], result, PATH_MAX);
 	close(fds[0]);
 
 	return (result);

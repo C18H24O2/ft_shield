@@ -211,7 +211,7 @@ void DaemonServer::accept_new_client()
 	close(client_fd); // fuck you
 }
 
-void DaemonServer::clear_client(Client *client)
+void DaemonServer::clear_client(client_t *client)
 {
 	if (client == NULL)
 		return ;
@@ -245,7 +245,7 @@ void DaemonServer::clear_client(size_t client_index)
 	clear_client(&this->client_list[client_index]);
 }
 
-void DaemonServer::disconnect_client(Client *client)
+void DaemonServer::disconnect_client(client_t *client)
 {
 	if (client == NULL)
 		return ;
@@ -262,7 +262,7 @@ void DaemonServer::disconnect_client(size_t client_index)
 	disconnect_client(&this->client_list[client_index]);
 }
 
-bool DaemonServer::receive_message(Client *client)
+bool DaemonServer::receive_message(client_t *client)
 {
 	if (client == NULL || client->state == CLIENT_UNUSED)
 		return (true);
@@ -330,19 +330,19 @@ bool DaemonServer::receive_message(Client *client)
 }
 
 #if SHIELD_DEBUG
-void print_client_info(const Client &client)
+void print_client_info(client_t *client)
 {
 	DEBUG("CLIENT INFO:\n");
-	DEBUG("  Index: %d\n", (int) client.index);
-	DEBUG("  State: %d\n", static_cast<int>(client.state));
-	DEBUG("  Last seen: %ld\n", client.last_seen);
-	DEBUG("  Input buffer size: %d\n", (int) client.input_buffer.size());
-	DEBUG("  Output buffer size: %d\n", (int) client.output_buffer.size());
-	DEBUG("  Pollfd fd: %d\n", client.pollfd->fd);
-	DEBUG("  Pollfd events: %d\n", client.pollfd->events);
-	DEBUG("  Pollfd revents: %d\n", client.pollfd->revents);
-	DEBUG("  Input buffer content: %s\n", client.input_buffer.c_str());
-	DEBUG("  Output buffer content: %s\n", client.output_buffer.c_str());
+	DEBUG("  Index: %d\n", (int) client->index);
+	DEBUG("  State: %d\n", static_cast<int>(client->state));
+	DEBUG("  Last seen: %ld\n", client->last_seen);
+	DEBUG("  Input buffer size: %d\n", (int) client->input_buffer.size());
+	DEBUG("  Output buffer size: %d\n", (int) client->output_buffer.size());
+	DEBUG("  Pollfd fd: %d\n", client->pollfd->fd);
+	DEBUG("  Pollfd events: %d\n", client->pollfd->events);
+	DEBUG("  Pollfd revents: %d\n", client->pollfd->revents);
+	DEBUG("  Input buffer content: %s\n", client->input_buffer.c_str());
+	DEBUG("  Output buffer content: %s\n", client->output_buffer.c_str());
 	DEBUG("END OF CLIENT INFO\n");
 }
 #else
@@ -356,7 +356,7 @@ bool DaemonServer::receive_message(size_t client_index)
 	return (receive_message(&this->client_list[client_index]));
 }
 
-void DaemonServer::send_message(Client *client)
+void DaemonServer::send_message(client_t *client)
 {
 	if (client == NULL || client->state == CLIENT_UNUSED || client->output_buffer.empty())
 		return ;
@@ -383,7 +383,7 @@ void DaemonServer::send_message(size_t client_index)
 	send_message(&this->client_list[client_index]);
 }
 
-void DaemonServer::check_activity(Client *client)
+void DaemonServer::check_activity(client_t *client)
 {
 	if (client == NULL)
 		return ;
@@ -407,7 +407,7 @@ void DaemonServer::receive_shell_data(size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
-	Client *client = &this->client_list[client_index];
+	client_t *client = &this->client_list[client_index];
 	if (client->pty_fd == -1)
 		return ;
 
@@ -425,6 +425,7 @@ void DaemonServer::receive_shell_data(size_t client_index)
 
 void DaemonServer::send_shell_data(size_t client_index)
 {
+	(void)client_index;
 	return;
 }
 
@@ -524,7 +525,7 @@ void DaemonServer::run()
 			// 	}
 			// 	else
 			// 	{
-			// 		// print_client_info(this->client_list[i - 1]); // Print client info for debugging
+			// 		// print_client_info(&(this->client_list[i - 1])); // Print client info for debugging
 			// 		DEBUG("Received message on client socket %zu\n", i - 1);
 			// 		if (!this->receive_message(i - 1)) {	// received message on a client socket, receive message
 			// 			// We want to quit, explode.
@@ -578,7 +579,7 @@ void DaemonServer::run()
 					break;
 			}
 			// DEBUG("send/disconnect %zu\n", i);
-			// print_client_info(this->client_list[i]); // Print client info for debugging
+			// print_client_info(&(this->client_list[i])); // Print client info for debugging
 			// if (this->pollfd_array[i + 1].revents & POLLOUT && this->client_list[i].output_buffer.size() != 0)		// data send
 			// {
 			// 	DEBUG("Sending message to client %zu\n", i);

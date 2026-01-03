@@ -39,41 +39,41 @@
 #define FT_SHIELD_TIMEOUT 60		// time in Seconds before a client gets dropped (from idling in auth) range before being dropped is [0..FT_SHIELD_TIMEOUT]
 #define FT_SHIELD_MESSAGE_SIZE 4096
 
-enum ClientState
+enum client_state
 {
-	CLIENT_UNUSED,			// Client slot is unused
+	CLIENT_UNUSED,			// client_t slot is unused
 	CLIENT_CONNECTED,		// Initial state, awaiting authentication
 	CLIENT_AUTHENTICATED,	// Authenticated, awaiting command
-	CLIENT_DISCONNECTED,	// Client has been set to be disconnected
+	CLIENT_DISCONNECTED,	// client_t has been set to be disconnected
 };
 
-enum FdType
+enum fd_type
 {
-	FD_UNUSED,			//Fd is unused
-	FD_SERVER,			//Fd is the server socket
-	FD_CLIENT_SOCKET,	//Fd is a client's socket
-	FD_CLIENT_PTY		//Fd is a pseudo-terminal
+	FD_UNUSED,			// File descriptor is unused
+	FD_SERVER,			// File descriptor is the server socket
+	FD_CLIENT_SOCKET,	// File descriptor is a client's socket
+	FD_CLIENT_PTY		// File descriptor is a pseudo-terminal
 };
 
 typedef struct
 {
-	FdType fd_type;
+	enum fd_type fd_type;
 	int client_index;
-}	FD_MetaData;
+}	fd_metadata_t;
 
-typedef struct Client
+typedef struct client
 {
 	int index;
 	struct pollfd* pollfd;
-	FD_MetaData* metadata;
-	ClientState	state;
+	fd_metadata_t* metadata;
+	enum client_state state;
 	time_t last_seen;
 	std::string input_buffer;		// what the client sends to the server
 	std::string output_buffer;		// what the server sends to the client
 	int pty_fd;
-}	Client;
+}	client_t;
 
-static const Command COMMANDS[] =
+static const command_t commands[] =
 {
 	{"shell", "shell", "Closes the connection temporairly and launches a shell", shield_cmd_shell},
 	{"help", "help [command]", "Provides help about the command list or a particular command", shield_cmd_help},
@@ -87,8 +87,8 @@ class DaemonServer
 {
 	public:
 		struct pollfd	pollfd_array[MAX_FD];						// MAX_FD is twice the max number of clients + 1 slot for the server
-		FD_MetaData		poll_metadata[MAX_FD];
-		Client			client_list[FT_SHIELD_MAX_CLIENTS];
+		fd_metadata_t	poll_metadata[MAX_FD];
+		client_t			client_list[FT_SHIELD_MAX_CLIENTS];
 		bool			should_accept;								// bool indicating if server should accept clients 
 		int				current_conn;								// number of currently connected clients
 		bool			shell_next;
@@ -97,19 +97,19 @@ class DaemonServer
 
 		// all client related functions have 2 versions for convenience, by index or by address	
 
-		void	clear_client(Client *client);				// will not do anything if client is NULL
+		void	clear_client(client_t *client);				// will not do anything if client is NULL
 		void	clear_client(size_t client_index);			// will not do anything if client_index out of [0..FT_SHIELD_MAX_CLIENTS)
 
-		void	disconnect_client(Client *client);
+		void	disconnect_client(client_t *client);
 		void	disconnect_client(size_t client_index);
 
-		bool	receive_message(Client *client);
+		bool	receive_message(client_t *client);
 		bool	receive_message(size_t client_index);
 
-		void	send_message(Client *client);
+		void	send_message(client_t *client);
 		void	send_message(size_t client_index);
 
-		void	check_activity(Client *client);
+		void	check_activity(client_t *client);
 		void	check_activity(size_t client_index);
 
 

