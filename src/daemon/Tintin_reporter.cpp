@@ -6,13 +6,12 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 14:03:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/28 23:56:15 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 00:23:15 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #if MATT_MODE
 #define TINTIN_ARCHIVAL 1
-#include <shield/le_function.h>
 #include "Tintin_reporter.hpp"
 #include <unistd.h>
 #include <fcntl.h>
@@ -52,7 +51,7 @@ int Tintin_reporter::init(std::string const& parent_dir, std::string const& name
 		}
 	}
 
-	int pid = le_getpid();
+	int pid = getpid();
 	if (pid == -1)
 	{
 		DEBUG("Failed to get pid: %m\n");

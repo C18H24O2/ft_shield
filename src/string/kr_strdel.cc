@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/03 22:46:22 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/03 22:52:24 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 00:15:13 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ void	kr_strdel(kr_string_t *str)
 {
 	if (!str)
 		return ;
-	if (str->ptr && kr_strowns(str))
+	if (str->ptr && str->owned)
 		free(str->ptr);
 	str->ptr = NULL;
 	str->len = 0;

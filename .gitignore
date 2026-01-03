@@ -13,7 +13,7 @@ compile_commands.json
 /daemon_ft_shield
 .direnv/
 *.swp
-/development.mk
-/hasher3000
+development.mk
+hasher3000
 /test.s
 *.bin

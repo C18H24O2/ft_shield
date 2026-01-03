@@ -1,10 +1,8 @@
-#include <sstream>
 #include <pty.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <cstring>
-#include "DaemonServer.hpp"
-#include "qio.h"
+#include <shield/server.h>
+#include <shield/qio.h>
 
 #include "cmds/screenshot.inc.cc"
 
@@ -103,20 +101,9 @@ int	shield_cmd_screenshot(
 	[[maybe_unused]] const char *args
 ) {
 	(void) client, (void) server, (void) args;
-	//TODO: remake in C
 	const char *result = shield_screenshot();
-	if (strncmp(result, "ERROR|", 6) != 0)
-	{
-		// client->output_buffer.append("Successfully took screenshot, saved to ");
-		// client->output_buffer.append(result);
-		// client->output_buffer.push_back('\n');
-	}
-	else
-	{
-		// client->output_buffer.append("Failed to take screenshot: ");
-		// client->output_buffer.append(result);
-		// client->output_buffer.push_back('\n');
-	}
+	kr_strappend(&client->out_buffer, result + 6);
+	kr_strappend(&client->out_buffer, "\n");
 	return (0);
 }
 

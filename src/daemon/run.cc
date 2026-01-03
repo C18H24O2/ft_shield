@@ -1,19 +1,32 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   le_function.h                                      :+:      :+:    :+:   */
+/*   run.cc                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/06 20:02:54 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/12/09 21:43:12 by kiroussa         ###   ########.fr       */
+/*   Created: 2025/07/17 01:18:29 by kiroussa          #+#    #+#             */
+/*   Updated: 2026/01/04 00:25:27 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef LE_FUNCTION_H
-# define LE_FUNCTION_H
+#include <shield/server.h>
 
-int	le_getpid(void);
-const char *le_strsignal(int sigval);
+#if MATT_MODE
+#define LOG_BUT_ONLY_IF_MATT_OTHERWISE_DEBUG(x) printf("%s", x)
+#else
+#define LOG_BUT_ONLY_IF_MATT_OTHERWISE_DEBUG(x) DEBUG(x)
+#endif
 
-#endif // LE_FUNCTION_H
+void	shield_daemon_run(void)
+{
+	DaemonServer server;
+
+	if (server_init(&server))
+	{
+		LOG_BUT_ONLY_IF_MATT_OTHERWISE_DEBUG("Failed to initialize the server.\n");
+		return ;
+	}
+	server_run(&server);
+	server_cleanup(&server);
+}

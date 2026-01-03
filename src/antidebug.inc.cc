@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:42:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/03 18:35:51 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/03 23:54:53 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -229,6 +229,10 @@ static inline int	shield_antidebug(void)
 	time_t			start;
 
 	DEBUG("antidebug/prctl: %d\n", ret);
+#if SHIELD_DEBUG
+	if (getenv("SHIELD_SKIP_ANTIDEBUG"))
+		return (1);
+#endif // SHIELD_DEBUG
 	if (ret < 0)
 		return (shield_yeet());
 	prctl(PR_SET_DUMPABLE, 0);

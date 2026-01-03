@@ -1,37 +1,41 @@
-#include "DaemonServer.hpp"
-#include <shield/le_function.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <shield/qio.h>
+#include <shield/server.h>
+#include <signal.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <signal.h>
-#include "shield.h"
-#include "qio.h"
 
 static int sig_received = 0;
 
 void handle_signals(int sig)
 {
-	sig_received = sig;
-	DEBUG("Received signal '%s' (%d)!\n", le_strsignal(sig), sig);
+	if (sig == SIGUSR1)
+		sig_received = sig;
+#if SHIELD_DEBUG
+	if (sig == SIGINT)
+		sig_received = sig;
+#endif
+	DEBUG("Received signal '%s' (%d)!\n", strsignal(sig), sig);
 	return ;
 }
 
-void daemon_cleanup(DaemonServer *that) {
+void server_cleanup(DaemonServer *that) {
 	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++) {
 		if (that->client_list[i].state != CLIENT_UNUSED)
-			daemon_disconnect_client(that, i);
+			server_disconnect_client(that, i);
 		kr_strdel(&that->client_list[i].in_buffer);
 		kr_strdel(&that->client_list[i].out_buffer);
 	}
 	close(that->pollfd_array[0].fd);
 }
 
-int daemon_init(DaemonServer *that)
+int server_init(DaemonServer *that)
 {
 	that->should_accept = false;
 	if (FT_SHIELD_MAX_CLIENTS >= 1)
@@ -146,6 +150,8 @@ int daemon_init(DaemonServer *that)
 	sa.sa_handler = handle_signals;
 	sa.sa_flags = 0;
 	for (int i = 1; i < NSIG; i++) {
+		if (i == SIGSEGV)
+			continue;
 		if (sigaction(i, &sa, NULL) == -1) {
 			MERR("sigaction failed for signal " + std::to_string(i));
 		}
@@ -156,7 +162,7 @@ int daemon_init(DaemonServer *that)
 	return 0;
 }
 
-void daemon_accept_new_client(DaemonServer *that)
+void server_accept_new_client(DaemonServer *that)
 {
 	// discarding sockaddr for now, can be added later
 	int client_fd = accept(that->pollfd_array[0].fd, NULL, NULL);
@@ -212,7 +218,7 @@ void daemon_accept_new_client(DaemonServer *that)
 	close(client_fd); // fuck you
 }
 
-void daemon_clear_client(DaemonServer *that, client_t *client)
+void server_clear_client(DaemonServer *that, client_t *client)
 {
 	(void)that;
 	if (client == NULL)
@@ -241,7 +247,7 @@ void daemon_clear_client(DaemonServer *that, client_t *client)
 	kr_strclr(&client->out_buffer);
 }
 
-void daemon_disconnect_client(DaemonServer *that, size_t client_index)
+void server_disconnect_client(DaemonServer *that, size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
@@ -249,14 +255,14 @@ void daemon_disconnect_client(DaemonServer *that, size_t client_index)
 	if (client == NULL)
 		return ;
 
-	shutdown(client_fd, SHUT_RDWR);
+	shutdown(client->pollfd->fd, SHUT_RDWR);
 	close(client->pollfd->fd);
 
-	daemon_clear_client(that, client);
+	server_clear_client(that, client);
 	that->current_conn--;
 }
 
-bool daemon_receive_message(DaemonServer *that, size_t client_index)
+bool server_receive_message(DaemonServer *that, size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return (true);
@@ -281,8 +287,11 @@ bool daemon_receive_message(DaemonServer *that, size_t client_index)
 			return (true);
 		}
 		qio_data.bytes_received += rec_bytes;
+		DEBUG("Received %zu bytes\n", rec_bytes);
+		DEBUG("Received %.*s\n", rec_bytes, buffer);
 		if (!kr_strappend(&client->in_buffer, buffer))
 			break;
+		DEBUG("New input buffer (%zu): %.*s\n", client->in_buffer.len, client->in_buffer.len, client->in_buffer.ptr);
 		//TODO: why is this here? shouldn't we keep accepting until maybe we get a \n?
 		// and if we don't want to, if it's not already there, let's maybe send the \n
 		// ourselves so the client is not "misaligned"
@@ -356,7 +365,7 @@ void print_client_info(client_t *client)
 # define print_client_info(x)
 #endif
 
-void daemon_send_message(DaemonServer *that, size_t client_index)
+void server_send_message(DaemonServer *that, size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
@@ -384,7 +393,7 @@ void daemon_send_message(DaemonServer *that, size_t client_index)
 	client->pollfd->events &= ~POLLOUT; // remove pollout from events to check
 }
 
-void daemon_check_activity(DaemonServer *that, size_t client_index)
+void server_check_activity(DaemonServer *that, size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
@@ -400,7 +409,7 @@ void daemon_check_activity(DaemonServer *that, size_t client_index)
 	}
 }
 
-void daemon_receive_shell_data(DaemonServer *that, size_t client_index)
+void server_receive_shell_data(DaemonServer *that, size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
@@ -421,16 +430,16 @@ void daemon_receive_shell_data(DaemonServer *that, size_t client_index)
 	client->pollfd->events |= POLLOUT;
 }
 
-void daemon_send_shell_data(DaemonServer *that, size_t client_index)
+void server_send_shell_data(DaemonServer *that, size_t client_index)
 {
 	(void)client_index;
 	(void)that;
 	return;
 }
 
-void daemon_run(DaemonServer *that)
+void server_run(DaemonServer *that)
 {
-	MLOG("Server running, process id: " + std::to_string(le_getpid()));
+	MLOG("Server running, process id: " + std::to_string(getpid()));
 
 	while (!sig_received || sig_received == SIGUSR1)
 	{
@@ -449,7 +458,7 @@ void daemon_run(DaemonServer *that)
 			}
 			if (sig_received != 0)
 			{
-				MLOG("Received signal (" + std::string(le_strsignal(sig_received)) + "), stopping server.");
+				MLOG("Received signal (" + std::string(strsignal(sig_received)) + "), stopping server.");
 				break ;
 			}
 			DEBUG("Poll failed, continuing.\n");
@@ -470,7 +479,7 @@ void daemon_run(DaemonServer *that)
 				{
 					DEBUG("New client trying to connect\n");
 					that->pollfd_array[i].revents = 0;	// reset revents for the server socket
-					daemon_accept_new_client(that);		// received message on the server socket, accept new client
+					server_accept_new_client(that);		// received message on the server socket, accept new client
 					DEBUG("Accepted new client, current connections: %d\n", that->current_conn);
 					break;
 				}
@@ -481,7 +490,7 @@ void daemon_run(DaemonServer *that)
 					if (that->pollfd_array[i].revents & POLLIN)
 					{
 						DEBUG("Received data from client %zu\n", client_index);
-						if (!daemon_receive_message(that, client_index))
+						if (!server_receive_message(that, client_index))
 						{
 							MLOG("Received quit command (client " + std::to_string(client_index) + "), exiting.");
 							quit = true;
@@ -501,8 +510,8 @@ void daemon_run(DaemonServer *that)
 					if (that->pollfd_array[i].revents & (POLLHUP | POLLERR))
 					{
 						// the shell is closed, cleanup
-						shutdown(this->pollfd_array[i].fd, SHUT_RDWR);
-						close(this->pollfd_array[i].fd);
+						shutdown(that->pollfd_array[i].fd, SHUT_RDWR);
+						close(that->pollfd_array[i].fd);
 						that->pollfd_array[i].fd = -1;
 						that->pollfd_array[i].events = 0;
 						that->pollfd_array[i].revents = 0;
@@ -517,7 +526,7 @@ void daemon_run(DaemonServer *that)
 						break;
 					if (that->pollfd_array[i].revents & POLLIN) //bro has shit to say
 					{
-						daemon_receive_shell_data(that, client_index);
+						server_receive_shell_data(that, client_index);
 					}
 					break;
 				}
@@ -534,14 +543,14 @@ void daemon_run(DaemonServer *that)
 			// 	{
 			// 		DEBUG("New client trying to connect\n");
 			// 		that->pollfd_array[i].revents = 0;	// reset revents for the server socket
-			// 		daemon_accept_new_client(that);		// received message on the server socket, accept new client
+			// 		server_accept_new_client(that);		// received message on the server socket, accept new client
 			// 		DEBUG("Accepted new client, current connections: %d\n", that->current_conn);
 			// 	}
 			// 	else
 			// 	{
 			// 		// print_client_info(&(that->client_list[i - 1])); // Print client info for debugging
 			// 		DEBUG("Received message on client socket %zu\n", i - 1);
-			// 		if (!daemon_receive_message(that, i - 1)) {	// received message on a client socket, receive message
+			// 		if (!server_receive_message(that, i - 1)) {	// received message on a client socket, receive message
 			// 			// We want to quit, explode.
 			// 			MLOG("Received quit command (client " + std::to_string(i - 1) + "), exiting.");
 			// 			quit = true;
@@ -574,13 +583,13 @@ void daemon_run(DaemonServer *that)
 					if (that->client_list[that->poll_metadata[i].client_index].state == CLIENT_DISCONNECTED)
 					{
 						DEBUG("Disconnecting client %zu\n", that->poll_metadata[i].client_index);
-						daemon_disconnect_client(that, that->poll_metadata[i].client_index);
+						server_disconnect_client(that, that->poll_metadata[i].client_index);
 						break;
 					}
 					if (that->pollfd_array[i].revents & POLLOUT && that->client_list[that->poll_metadata[i].client_index].out_buffer.len != 0)		// data send
 					{
 						DEBUG("Sending message to client %d\n", that->poll_metadata[i].client_index);
-						daemon_send_message(that, that->poll_metadata[i].client_index);	// send message to client
+						server_send_message(that, that->poll_metadata[i].client_index);	// send message to client
 					}
 					break;
 				}
@@ -597,13 +606,13 @@ void daemon_run(DaemonServer *that)
 			// if (that->pollfd_array[i + 1].revents & POLLOUT && that->client_list[i].output_buffer.size() != 0)		// data send
 			// {
 			// 	DEBUG("Sending message to client %zu\n", i);
-			// 	daemon_send_message(that, i);	// send message to client
+			// 	server_send_message(that, i);	// send message to client
 			// 	continue;
 			// }
 			// if (that->client_list[i].state == CLIENT_DISCONNECTED)		// check for disconnected state, and disconnect user
 			// {
 			// 	DEBUG("Client %zu disconnected\n", i);
-			// 	daemon_disconnect_client(that, i);
+			// 	server_disconnect_client(that, i);
 			// 	continue;
 			// }
 		}

@@ -3,14 +3,18 @@
 
 PASSWORD ?= Password123
 
-include fuckery.mk
+MAKE := make --no-print-directory
+MAKE_DIR := make
 
+include $(MAKE_DIR)/fuckery.mk
+
+-include $(MAKE_DIR)/development.mk
 -include development.mk
 
 ifeq ($(DEVELOPMENT), 1)
 DEBUG := 1
 USE_WARNINGS := 1
-_ := $(shell bash gensources.sh sources.mk $(SRC_DIR))
+_ := $(shell bash $(MAKE_DIR)/gensources.sh $(MAKE_DIR)/sources.mk $(SRC_DIR))
 endif
 
 USE_LIBFTSYS := 0
@@ -20,14 +24,14 @@ USE_WW := 0
 DEBUG ?= 0
 BONUS ?= 0
 
-_ := $(shell bash -c 'if [ ! -f hasher3000 ]; then cc -msse4.2 -mrdrnd -DHASH_MAIN=1 -O3 -o hasher3000 src/hash.cc; fi')
+_ := $(shell bash -c 'if [ ! -f $(MAKE_DIR)/hasher3000 ]; then clang -msse4.2 -mrdrnd -DHASH_MAIN=1 -O3 -o $(MAKE_DIR)/hasher3000 src/hash.cc; fi')
 
 ifeq ($(PROJECT_TYPE), 1)
 CC := clang++
 else
-CC := clang++
+CC := clang
 endif
-CFLAGS := -Wall -fcolor-diagnostics -Wextra -msse4.2 -mrdrnd -Wno-unused-command-line-argument -DSHIELD_PASSWORD=\"$(shell ./hasher3000 $(PASSWORD))\"
+CFLAGS := -Wall -fcolor-diagnostics -Wextra -msse4.2 -mrdrnd -Wno-unused-command-line-argument -DSHIELD_PASSWORD=\"$(shell $(MAKE_DIR)/hasher3000 $(PASSWORD))\"
 CFLAGS += 
 ifneq ($(USE_WARNINGS), 1)
 CFLAGS += -Werror
@@ -46,15 +50,11 @@ endif
 CXX := clang++
 CXXFLAGS := $(CFLAGS)
 
-NASM := nasm
-NASMFLAGS := -f elf64
-
 SRC_DIR := src
 BUILD_DIR := build
 INC_DIR := include
 OBJ_DIR := $(BUILD_DIR)/obj
 
-#TODO: maybe move all .c to .cc or .cpp files
 CFLAGS += -I$(INC_DIR)
 CXXFLAGS += -I$(INC_DIR)
 
@@ -64,11 +64,15 @@ CXXFLAGS += $(EXTRA_CXXFLAGS)
 ifeq ($(DEBUG), 1)
 CFLAGS += -g3 -ggdb -gdwarf-3 -DSHIELD_DEBUG=1
 CXXFLAGS += -g3 -ggdb -gdwarf-3 -DSHIELD_DEBUG=1
-NASMFLAGS += -g
 endif
 
-include sources.mk
+include $(MAKE_DIR)/sources.mk
 
+ifeq ($(PROJECT_TYPE), 0)
+SRCS := $(filter-out %.cpp, $(SRCS))
+endif
+
+CFLAGS += $(SRC_DIRS:%=-I%)
 CXXFLAGS += $(SRC_DIRS:%=-I%)
 
 LIB_DIR := third-party
@@ -105,7 +109,8 @@ ifeq ($(USE_WW), 1)
 MAIN_DEPS += $(WW_BIN)
 endif
 
-all: $(NAME)
+all: 
+	@$(MAKE) FKRY_NO_PRINT=1 -j$(shell nproc) $(NAME)
 
 ft_shield MattDaemon: $(MAIN_DEPS) 
 	$(LD) $(LDFLAGS) -o $@ $(LINK_DEPS) 
@@ -121,19 +126,11 @@ endif
 endif
 
 matt-daemon:
-	$(MAKE) PROJECT_TYPE=1 MattDaemon
+	$(MAKE) -j$(shell nproc) PROJECT_TYPE=1 MattDaemon
 
 kill-daemon:
 	kill -9 $(shell ps aux | grep ft_shield | grep -v grep | xargs echo | cut -d' ' -f2) 2>/dev/null || true
 	kill -9 $(shell ps aux | grep MattDaemon | grep -v grep | xargs echo | cut -d' ' -f2) 2>/dev/null || true
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
-	@mkdir -p $(dir $@)
-	$(NASM) $(NASMFLAGS) $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)

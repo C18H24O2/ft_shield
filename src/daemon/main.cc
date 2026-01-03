@@ -6,14 +6,13 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:06:32 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/12/09 21:43:58 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 00:23:15 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <errno.h>
 #include <fcntl.h>
 #include <shield/daemon.h>
-#include <shield/le_function.h>
 #include <stdbool.h>
 #include <sys/file.h>
 #include <unistd.h>
@@ -29,7 +28,7 @@ static inline int	shield_daemon_lock(void)
 		close(lock_fd);
 		return (-3);
 	}
-	int pid = le_getpid();
+	int pid = getpid();
 	(void)!write(lock_fd, &pid, sizeof(pid)); // fuck it, write the bytes
 	errno = 0;
 	return (lock_fd);
@@ -42,7 +41,7 @@ int	shield_daemon_main(void)
 	DEBUG("trying to lock on %s, got: %d (%m)\n", DAEMON_LOCK_FILE, lock_fd);
 	if (lock_fd < 0)
 		return (1);
-	DEBUG("daemon started on pid %d\n", le_getpid());
+	DEBUG("daemon started on pid %d\n", getpid());
 	shield_daemon_run();
 	close(lock_fd);
 	unlink(DAEMON_LOCK_FILE);

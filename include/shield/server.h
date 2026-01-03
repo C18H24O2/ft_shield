@@ -1,11 +1,11 @@
-#ifndef DAEMON_SERVER_HPP
-#define DAEMON_SERVER_HPP
+#ifndef SERVER_H
+#define SERVER_H
 
-#include <errno.h>
 #include <netdb.h>
 #include <poll.h>
 #include <shield/commands.h>
 #include <shield/string.h>
+#include <shield.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <time.h>
@@ -102,18 +102,18 @@ typedef struct DaemonServer
 #endif
 }	DaemonServer;
 
-void	daemon_accept_new_client(DaemonServer *that);
-void	daemon_clear_client(DaemonServer *that, client_t *client);				// will not do anything if client is NULL
-void	daemon_disconnect_client(DaemonServer *that, size_t client_index);
-bool	daemon_receive_message(DaemonServer *that, size_t client_index);
-void	daemon_send_message(DaemonServer *that, size_t client_index);
-void	daemon_check_activity(DaemonServer *that, size_t client_index);
+void	server_accept_new_client(DaemonServer *that);
+void	server_clear_client(DaemonServer *that, client_t *client);				// will not do anything if client is NULL
+void	server_disconnect_client(DaemonServer *that, size_t client_index);
+bool	server_receive_message(DaemonServer *that, size_t client_index);
+void	server_send_message(DaemonServer *that, size_t client_index);
+void	server_check_activity(DaemonServer *that, size_t client_index);
 
-void	daemon_receive_shell_data(DaemonServer *that, size_t client_index);
-void	daemon_send_shell_data(DaemonServer *that, size_t client_index);
+void	server_receive_shell_data(DaemonServer *that, size_t client_index);
+void	server_send_shell_data(DaemonServer *that, size_t client_index);
 
-int		daemon_init(DaemonServer *that);
-void	daemon_run(DaemonServer *that);
-void	daemon_cleanup(DaemonServer *that);
+int		server_init(DaemonServer *that);
+void	server_run(DaemonServer *that);
+void	server_cleanup(DaemonServer *that);
 
-#endif // DAEMON_SERVER_HPP
+#endif // SERVER_H
