@@ -25,7 +25,7 @@ void handle_signals(int sig)
 	return ;
 }
 
-void server_cleanup(DaemonServer *that) {
+void server_cleanup(daemon_server_t *that) {
 	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++) {
 		if (that->client_list[i].state != CLIENT_UNUSED)
 			server_disconnect_client(that, i);
@@ -35,7 +35,7 @@ void server_cleanup(DaemonServer *that) {
 	close(that->pollfd_array[0].fd);
 }
 
-int server_init(DaemonServer *that)
+int server_init(daemon_server_t *that)
 {
 	that->should_accept = false;
 	if (FT_SHIELD_MAX_CLIENTS >= 1)
@@ -162,7 +162,7 @@ int server_init(DaemonServer *that)
 	return 0;
 }
 
-void server_accept_new_client(DaemonServer *that)
+void server_accept_new_client(daemon_server_t *that)
 {
 	// discarding sockaddr for now, can be added later
 	int client_fd = accept(that->pollfd_array[0].fd, NULL, NULL);
@@ -218,7 +218,7 @@ void server_accept_new_client(DaemonServer *that)
 	close(client_fd); // fuck you
 }
 
-void server_clear_client(DaemonServer *that, client_t *client)
+void server_clear_client(daemon_server_t *that, client_t *client)
 {
 	(void)that;
 	if (client == NULL)
@@ -247,7 +247,7 @@ void server_clear_client(DaemonServer *that, client_t *client)
 	kr_strclr(&client->out_buffer);
 }
 
-void server_disconnect_client(DaemonServer *that, size_t client_index)
+void server_disconnect_client(daemon_server_t *that, size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
@@ -262,7 +262,7 @@ void server_disconnect_client(DaemonServer *that, size_t client_index)
 	that->current_conn--;
 }
 
-bool server_receive_message(DaemonServer *that, size_t client_index)
+bool server_receive_message(daemon_server_t *that, size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return (true);
@@ -365,7 +365,7 @@ void print_client_info(client_t *client)
 # define print_client_info(x)
 #endif
 
-void server_send_message(DaemonServer *that, size_t client_index)
+void server_send_message(daemon_server_t *that, size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
@@ -393,7 +393,7 @@ void server_send_message(DaemonServer *that, size_t client_index)
 	client->pollfd->events &= ~POLLOUT; // remove pollout from events to check
 }
 
-void server_check_activity(DaemonServer *that, size_t client_index)
+void server_check_activity(daemon_server_t *that, size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
@@ -409,7 +409,7 @@ void server_check_activity(DaemonServer *that, size_t client_index)
 	}
 }
 
-void server_receive_shell_data(DaemonServer *that, size_t client_index)
+void server_receive_shell_data(daemon_server_t *that, size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
@@ -430,14 +430,14 @@ void server_receive_shell_data(DaemonServer *that, size_t client_index)
 	client->pollfd->events |= POLLOUT;
 }
 
-void server_send_shell_data(DaemonServer *that, size_t client_index)
+void server_send_shell_data(daemon_server_t *that, size_t client_index)
 {
 	(void)client_index;
 	(void)that;
 	return;
 }
 
-void server_run(DaemonServer *that)
+void server_run(daemon_server_t *that)
 {
 	MLOG("Server running, process id: " + std::to_string(getpid()));
 

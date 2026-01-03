@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 01:18:29 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/04 00:25:27 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 00:45:19 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 
 void	shield_daemon_run(void)
 {
-	DaemonServer server;
+	daemon_server_t server;
 
 	if (server_init(&server))
 	{

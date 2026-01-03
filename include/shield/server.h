@@ -89,7 +89,7 @@ static const command_t commands[] =
 	{NULL, NULL, NULL, NULL}
 };
 
-typedef struct DaemonServer
+typedef struct daemon_server
 {
 	struct pollfd	pollfd_array[MAX_FD];						// MAX_FD is twice the max number of clients + 1 slot for the server
 	fd_metadata_t	poll_metadata[MAX_FD];
@@ -100,20 +100,20 @@ typedef struct DaemonServer
 #if MATT_MODE
 	Tintin_reporter	logger;
 #endif
-}	DaemonServer;
+}	daemon_server_t;
 
-void	server_accept_new_client(DaemonServer *that);
-void	server_clear_client(DaemonServer *that, client_t *client);				// will not do anything if client is NULL
-void	server_disconnect_client(DaemonServer *that, size_t client_index);
-bool	server_receive_message(DaemonServer *that, size_t client_index);
-void	server_send_message(DaemonServer *that, size_t client_index);
-void	server_check_activity(DaemonServer *that, size_t client_index);
+void	server_accept_new_client(daemon_server_t *that);
+void	server_clear_client(daemon_server_t *that, client_t *client);				// will not do anything if client is NULL
+void	server_disconnect_client(daemon_server_t *that, size_t client_index);
+bool	server_receive_message(daemon_server_t *that, size_t client_index);
+void	server_send_message(daemon_server_t *that, size_t client_index);
+void	server_check_activity(daemon_server_t *that, size_t client_index);
 
-void	server_receive_shell_data(DaemonServer *that, size_t client_index);
-void	server_send_shell_data(DaemonServer *that, size_t client_index);
+void	server_receive_shell_data(daemon_server_t *that, size_t client_index);
+void	server_send_shell_data(daemon_server_t *that, size_t client_index);
 
-int		server_init(DaemonServer *that);
-void	server_run(DaemonServer *that);
-void	server_cleanup(DaemonServer *that);
+int		server_init(daemon_server_t *that);
+void	server_run(daemon_server_t *that);
+void	server_cleanup(daemon_server_t *that);
 
 #endif // SERVER_H

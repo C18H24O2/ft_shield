@@ -6,7 +6,7 @@
 
 #include "cmds/screenshot.inc.cc"
 
-int shield_cmd_help(client_t *client, [[maybe_unused]] DaemonServer *server, const char *args)
+int shield_cmd_help(client_t *client, [[maybe_unused]] daemon_server_t *server, const char *args)
 {
 	(void) client, (void) server, (void) args;
 	//TODO: remake in C
@@ -49,7 +49,7 @@ int shield_cmd_help(client_t *client, [[maybe_unused]] DaemonServer *server, con
 }
 
 // Summon a shell for the client
-int	shield_cmd_shell(client_t *client, DaemonServer *server, const char *args)
+int	shield_cmd_shell(client_t *client, daemon_server_t *server, const char *args)
 {
 	(void) args; // unused parameter
 	int master_fd, pid;
@@ -97,7 +97,7 @@ int	shield_cmd_shell(client_t *client, DaemonServer *server, const char *args)
 
 int	shield_cmd_screenshot(
 	[[maybe_unused]] client_t *client,
-	[[maybe_unused]] DaemonServer *server,
+	[[maybe_unused]] daemon_server_t *server,
 	[[maybe_unused]] const char *args
 ) {
 	(void) client, (void) server, (void) args;
@@ -107,7 +107,7 @@ int	shield_cmd_screenshot(
 	return (0);
 }
 
-int	shield_cmd_get(client_t *client, DaemonServer *server, const char *args)
+int	shield_cmd_get(client_t *client, daemon_server_t *server, const char *args)
 {
 	(void) client; // unused parameter
 	(void) server; // unused parameter
@@ -115,7 +115,7 @@ int	shield_cmd_get(client_t *client, DaemonServer *server, const char *args)
 	return (0);
 }
 
-int	shield_cmd_put(client_t *client, DaemonServer *server, const char *args)
+int	shield_cmd_put(client_t *client, daemon_server_t *server, const char *args)
 {
 	(void) client; // unused parameter
 	(void) server; // unused parameter
