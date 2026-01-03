@@ -93,29 +93,23 @@ typedef struct DaemonServer
 	bool			should_accept;								// bool indicating if server should accept clients 
 	int				current_conn;								// number of currently connected clients
 	bool			shell_next;
-
-	void	accept_new_client(struct DaemonServer *that);
-
-	void	clear_client(struct DaemonServer *that, client_t *client);				// will not do anything if client is NULL
-
-	void	disconnect_client(struct DaemonServer *that, size_t client_index);
-
-	bool	receive_message(struct DaemonServer *that, size_t client_index);
-
-	void	send_message(struct DaemonServer *that, size_t client_index);
-
-	void	check_activity(struct DaemonServer *that, size_t client_index);
-
-
-	void	receive_shell_data(struct DaemonServer *that, size_t client_index);
-	void	send_shell_data(struct DaemonServer *that, size_t client_index);
-
 #if MATT_MODE
 	Tintin_reporter	logger;
 #endif
-	int		init(struct DaemonServer *that);
-	void	run(struct DaemonServer *that);
-	void	cleanup(struct DaemonServer *that);
 }	DaemonServer;
+
+void	daemon_accept_new_client(DaemonServer *that);
+void	daemon_clear_client(DaemonServer *that, client_t *client);				// will not do anything if client is NULL
+void	daemon_disconnect_client(DaemonServer *that, size_t client_index);
+bool	daemon_receive_message(DaemonServer *that, size_t client_index);
+void	daemon_send_message(DaemonServer *that, size_t client_index);
+void	daemon_check_activity(DaemonServer *that, size_t client_index);
+
+void	daemon_receive_shell_data(DaemonServer *that, size_t client_index);
+void	daemon_send_shell_data(DaemonServer *that, size_t client_index);
+
+int		daemon_init(DaemonServer *that);
+void	daemon_run(DaemonServer *that);
+void	daemon_cleanup(DaemonServer *that);
 
 #endif // DAEMON_SERVER_HPP
