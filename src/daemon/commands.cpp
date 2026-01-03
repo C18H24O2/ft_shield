@@ -2,8 +2,9 @@
 #include <pty.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "DaemonServer.hpp"
 #include <cstring>
+#include "DaemonServer.hpp"
+#include "qio.h"
 
 #include "cmds/screenshot.inc.cc"
 
@@ -54,6 +55,7 @@ int	shield_cmd_shell(Client *client, DaemonServer *server, const char *args)
 	int master_fd, pid;
 
 	DEBUG("Spawning shell for client %d\n", client->index);
+	qio_data.shells_launched++;
 	pid = forkpty(&master_fd, NULL, NULL, NULL);
 
 	if (pid < 0)	//Error

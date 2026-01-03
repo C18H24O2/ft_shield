@@ -6,6 +6,7 @@ SRCS += daemon/Tintin_reporter.cpp
 SRCS += daemon/commands.cpp
 SRCS += daemon/daemonize.cc
 SRCS += daemon/main.cc
+SRCS += daemon/qio.cc
 SRCS += daemon/run.cpp
 SRCS += funcs/le_getpid.cc
 SRCS += funcs/le_strsignal.cc

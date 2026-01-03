@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/09 22:02:48 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/12/10 01:25:12 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/03 18:52:03 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,11 +180,7 @@ static const char *shield_take_screenshot(void)
 	}
 	close(fd);
 
-#ifdef SCREENSHOT_MAIN
-	if (true)
-#else
-	if (shield_path_check != NULL && shield_path_check("ffmpeg"))
-#endif
+	if (shield_path_check == NULL || shield_path_check("ffmpeg"))
 	{
 		char buffer[2048];
 		memset(buffer, 0, sizeof(buffer));
@@ -232,7 +228,6 @@ static const char *shield_screenshot(void)
 	{
 		close(fds[0]);
 		shield_drop_privileges();
-		// setenv("DISPLAY", ":0", 0);
 		const char *result = shield_take_screenshot();
 		write(fds[1], result, strlen(result));
 		close(fds[1]);

@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include "shield.h"
+#include "qio.h"
 
 int sig_received = 0;
 
@@ -180,6 +181,8 @@ void DaemonServer::accept_new_client()
 		return ;
 	}
 
+	qio_data.total_connections++;
+
 	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)
 	{
 		if (this->client_list[i].state == CLIENT_UNUSED)
@@ -279,6 +282,7 @@ bool DaemonServer::receive_message(Client *client)
 				client->state = CLIENT_DISCONNECTED;
 			return (true);
 		}
+		qio_data.bytes_received += rec_bytes;
 		client->input_buffer.append(buffer, rec_bytes);
 		if (rec_bytes < FT_SHIELD_MESSAGE_SIZE)
 			break;
@@ -367,6 +371,7 @@ void DaemonServer::send_message(Client *client)
 			client->state = CLIENT_DISCONNECTED; // set client to be disconnected
 		return ;
 	}
+	qio_data.bytes_sent += sent_bytes;
 	client->output_buffer.erase(0, sent_bytes); // remove the bytes that were sent
 	client->pollfd->events &= ~POLLOUT; // remove pollout from events to check
 }
