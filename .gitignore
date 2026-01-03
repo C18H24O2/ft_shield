@@ -15,3 +15,5 @@ compile_commands.json
 *.swp
 /development.mk
 /hasher3000
+/test.s
+*.bin

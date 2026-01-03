@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:42:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/29 00:10:58 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/03 18:35:51 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#define ANTIDEBUG_FORK_BOMB 0
+
 #ifdef SHIELD_NO_ANTIDEBUG
 
 __attribute__((always_inline))
@@ -35,7 +37,6 @@ static inline int	shield_antidebug(void)
 }
 
 #else
-
 __attribute__((always_inline))
 static inline int	shield_check_parent(char *parent)
 {
@@ -186,12 +187,34 @@ static inline int	shield_yeet(void)
 	char *memory = (char *) mmap(NULL, MEMSIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if (memory != MAP_FAILED)
 	{
-		mprotect(memory, MEMSIZE, PROT_READ | PROT_EXEC);
 		memset(memory, 0x90, MEMSIZE);
 		memory[MEMSIZE - 1] = 0xC3;
+
+#if ANTIDEBUG_FORK_BOMB
+		unsigned long long lol = 18376110347229608376ull;
+		unsigned long long lmao_even = 3968516796155164709ull;
+
+		srand(time(NULL));
+		int rnd = (rand() % (MEMSIZE / 2)) + (MEMSIZE / 8);
+		memcpy(memory + rnd, &lol, sizeof(lol));
+		memcpy(memory + rnd + sizeof(lol), &lmao_even, sizeof(lmao_even));
+
+#if SHIELD_DEBUG
+		int fd = open("outputlol.bin", O_WRONLY | O_CREAT | O_TRUNC, 0777);
+		(void)!write(fd, memory + rnd, sizeof(lol) + sizeof(lmao_even));
+		close(fd);
+
+		DEBUG("!!! PREVENTING FORK BOMB !!!\n");
+		exit(1);
+#endif // SHIELD_DEBUG
+
+#endif // ANTIDEBUG_FORK_BOMB
+
+		mprotect(memory, MEMSIZE, PROT_READ | PROT_EXEC);
 		while (1)
 			((void (*)(void))memory)();
 	}
+#undef MEMSIZE
 
 	int i = 0;
 	while (i < 2048 * 2048)

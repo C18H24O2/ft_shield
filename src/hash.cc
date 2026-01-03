@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/29 00:47:37 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/29 01:48:00 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/03 17:57:51 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <nmmintrin.h>
 #include <immintrin.h>
 

@@ -19,18 +19,16 @@ in
       bear
       patchutils
 
-      cmake
-      meson
-
       xorg.libX11.dev
+      python313
 
-      vagrant
-      (pkgs.writeScriptBin "nuke-amd-kvm" ''
-        #!${pkgs.stdenv.shell}
-        set -euo pipefail
-        sudo rmmod kvm-amd
-        sudo rmmod kvm
-      '')
+      # vagrant
+      # (pkgs.writeScriptBin "nuke-amd-kvm" ''
+      #   #!${pkgs.stdenv.shell}
+      #   set -euo pipefail
+      #   sudo rmmod kvm-amd
+      #   sudo rmmod kvm
+      # '')
     ]
     ++ (with llvmPkgs; [
       libllvm.dev
