@@ -195,6 +195,6 @@ copy-target: $(NAME)
 	cp $(NAME) $(TO)
 
 compile_commands.json: oclean
-	bear -- $(MAKE) USE_WARNINGS=1 $(OBJS) 
+	bear -- $(MAKE) USE_WARNINGS=1 -j $(OBJS) 
 
 .PHONY: all clean fclean re

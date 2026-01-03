@@ -25,6 +25,8 @@ void daemon_cleanup(DaemonServer *that) {
 	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++) {
 		if (that->client_list[i].state != CLIENT_UNUSED)
 			daemon_disconnect_client(that, i);
+		kr_strdel(&that->client_list[i].in_buffer);
+		kr_strdel(&that->client_list[i].out_buffer);
 	}
 	close(that->pollfd_array[0].fd);
 }
@@ -52,8 +54,8 @@ int daemon_init(DaemonServer *that)
 		that->client_list[i].pty_fd = -1;
 		that->client_list[i].state = CLIENT_UNUSED;
 		that->client_list[i].last_seen = 0;
-		that->client_list[i].input_buffer.clear();
-		that->client_list[i].output_buffer.clear();
+		memset(&that->client_list[i].in_buffer, 0, sizeof(kr_string_t));
+		memset(&that->client_list[i].out_buffer, 0, sizeof(kr_string_t));
 		that->client_list[i].metadata = NULL;
 	}
 	that->shell_next = false;
@@ -167,12 +169,14 @@ void daemon_accept_new_client(DaemonServer *that)
 
 	if (that->current_conn >= FT_SHIELD_MAX_CLIENTS || that->should_accept == false)	// may add a message to the client later
 	{
+		shutdown(client_fd, SHUT_RDWR);
 		close(client_fd);
 		return ;
 	}
 
 	if (fcntl(client_fd, F_SETFL, O_NONBLOCK) == -1)	// try to set client socket as non blocking
 	{
+		shutdown(client_fd, SHUT_RDWR);
 		close(client_fd);
 		return ;
 	}
@@ -204,6 +208,7 @@ void daemon_accept_new_client(DaemonServer *that)
 			return ;
 		}
 	}
+	shutdown(client_fd, SHUT_RDWR);
 	close(client_fd); // fuck you
 }
 
@@ -231,8 +236,9 @@ void daemon_clear_client(DaemonServer *that, client_t *client)
 	client->state = CLIENT_UNUSED;
 	client->pty_fd = -1;
 	client->last_seen = 0;
-	client->input_buffer.clear();
-	client->output_buffer.clear();
+	
+	kr_strclr(&client->in_buffer);
+	kr_strclr(&client->out_buffer);
 }
 
 void daemon_disconnect_client(DaemonServer *that, size_t client_index)
@@ -243,7 +249,9 @@ void daemon_disconnect_client(DaemonServer *that, size_t client_index)
 	if (client == NULL)
 		return ;
 
+	shutdown(client_fd, SHUT_RDWR);
 	close(client->pollfd->fd);
+
 	daemon_clear_client(that, client);
 	that->current_conn--;
 }
@@ -256,11 +264,12 @@ bool daemon_receive_message(DaemonServer *that, size_t client_index)
 	if (client == NULL || client->state == CLIENT_UNUSED)
 		return (true);
 
-	char buffer[FT_SHIELD_MESSAGE_SIZE];	// uuuh luh 4kB size oui oui (way too much for what we need but eh)
+	char buffer[FT_SHIELD_MESSAGE_SIZE + 1];	// uuuh luh 4kB size oui oui (way too much for what we need but eh)
 
 	DEBUG("Receiving message from client %d\n", client->index);
 	while (1)	//loop on that thang
 	{
+		memset(buffer, 0, FT_SHIELD_MESSAGE_SIZE + 1);
 		ssize_t rec_bytes = recv(client->pollfd->fd, buffer, FT_SHIELD_MESSAGE_SIZE, 0);
 		if (rec_bytes <= 0)
 		{
@@ -272,15 +281,19 @@ bool daemon_receive_message(DaemonServer *that, size_t client_index)
 			return (true);
 		}
 		qio_data.bytes_received += rec_bytes;
-		client->input_buffer.append(buffer, rec_bytes);
+		if (!kr_strappend(&client->in_buffer, buffer))
+			break;
+		//TODO: why is this here? shouldn't we keep accepting until maybe we get a \n?
+		// and if we don't want to, if it's not already there, let's maybe send the \n
+		// ourselves so the client is not "misaligned"
 		if (rec_bytes < FT_SHIELD_MESSAGE_SIZE)
 			break;
 	}
 #if MATT_MODE
-	if (client->input_buffer == "quit" || client->input_buffer == "quit\n")
+	if (kr_strcmp(&client->in_buffer, "quit\n") == 0)
 		return (false);
 #endif
-	DEBUG("User input: %s\n", client->input_buffer.c_str());
+	DEBUG("User input: %.*s\n", client->in_buffer.len, client->in_buffer.ptr);
 
 	// Here depending on what "mode" the client is in":
 	// Standard mode just interprets and looks for commands sent to the server
@@ -291,29 +304,34 @@ bool daemon_receive_message(DaemonServer *that, size_t client_index)
 	{
 		case (-1):	//The client does not Have a pty linked -> Normal mode
 		{
-			DEBUG("input to interpreter: %s\n", client->input_buffer.c_str());
-			if (client->input_buffer == "SHELL\n")
+			DEBUG("input to interpreter: %.*s\n", client->in_buffer.len, client->in_buffer.ptr);
+			//TODO: command handling
+			if (kr_strcmp(&client->in_buffer, "SHELL\n") == 0)
 			{
 				DEBUG("Spawning shell for client %d\n", client->index);
 				shield_cmd_shell(client, that, NULL);
 			}
-			client->input_buffer.clear();
 			break;
 		}
 		default:	// anything else *should* be that the client has a shell
 		{
 			DEBUG("Passing data to shell pty\n");
-			int wbytes = write(client->pty_fd, client->input_buffer.c_str(), client->input_buffer.size());
-			if (wbytes <= 0)
+			size_t written = 0;
+			while (written < client->in_buffer.len)
 			{
-				DEBUG("Error writing to pty\n");
-				client->state = CLIENT_DISCONNECTED;
-				return (true);
+				int wbytes = write(client->pty_fd, client->in_buffer.ptr + written, client->in_buffer.len - written);
+				if (wbytes <= 0)
+				{
+					DEBUG("Error writing to pty\n");
+					client->state = CLIENT_DISCONNECTED;
+					return (true);
+				}
+				written += wbytes;
 			}
-			client->input_buffer.clear();
 			break;
 		}
 	}
+	kr_strclr(&client->in_buffer);
 
 	return (true);
 }
@@ -325,13 +343,13 @@ void print_client_info(client_t *client)
 	DEBUG("  Index: %d\n", (int) client->index);
 	DEBUG("  State: %d\n", static_cast<int>(client->state));
 	DEBUG("  Last seen: %ld\n", client->last_seen);
-	DEBUG("  Input buffer size: %d\n", (int) client->input_buffer.size());
-	DEBUG("  Output buffer size: %d\n", (int) client->output_buffer.size());
+	DEBUG("  Input buffer size: %d\n", (int) client->in_buffer.len);
+	DEBUG("  Output buffer size: %d\n", (int) client->out_buffer.len);
 	DEBUG("  Pollfd fd: %d\n", client->pollfd->fd);
 	DEBUG("  Pollfd events: %d\n", client->pollfd->events);
 	DEBUG("  Pollfd revents: %d\n", client->pollfd->revents);
-	DEBUG("  Input buffer content: %s\n", client->input_buffer.c_str());
-	DEBUG("  Output buffer content: %s\n", client->output_buffer.c_str());
+	DEBUG("  Input buffer content: %.*s\n", client->in_buffer.ptr);
+	DEBUG("  Output buffer content: %.*s\n", client->out_buffer.ptr);
 	DEBUG("END OF CLIENT INFO\n");
 }
 #else
@@ -343,21 +361,26 @@ void daemon_send_message(DaemonServer *that, size_t client_index)
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
 	client_t *client = &(that->client_list[client_index]);
-	if (client == NULL || client->state == CLIENT_UNUSED || client->output_buffer.empty())
+	if (client == NULL || client->state == CLIENT_UNUSED || client->out_buffer.len == 0)
 		return ;
 
-	ssize_t sent_bytes = send(client->pollfd->fd, client->output_buffer.c_str(), client->output_buffer.size(), 0);
-	if (sent_bytes <= 0)
+	size_t written = 0;
+	while (written < client->out_buffer.len)
 	{
-		DEBUG("client disconnected or error occurred\n");
-		if (sent_bytes == 0) // client disconnected
-			client->state = CLIENT_DISCONNECTED; // set client to be disconnected
-		else if (errno != EAGAIN && errno != EWOULDBLOCK) // some other error occurred
-			client->state = CLIENT_DISCONNECTED; // set client to be disconnected
-		return ;
+		ssize_t sent_bytes = send(client->pollfd->fd, client->out_buffer.ptr + written, client->out_buffer.len - written, 0);
+		if (sent_bytes <= 0)
+		{
+			DEBUG("client disconnected or error occurred\n");
+			if (sent_bytes == 0) // client disconnected
+				client->state = CLIENT_DISCONNECTED; // set client to be disconnected
+			else if (errno != EAGAIN && errno != EWOULDBLOCK) // some other error occurred
+				client->state = CLIENT_DISCONNECTED; // set client to be disconnected
+			return ;
+		}
+		qio_data.bytes_sent += sent_bytes;
+		written += sent_bytes;
 	}
-	qio_data.bytes_sent += sent_bytes;
-	client->output_buffer.erase(0, sent_bytes); // remove the bytes that were sent
+	kr_strclr(&client->out_buffer);
 	client->pollfd->events &= ~POLLOUT; // remove pollout from events to check
 }
 
@@ -385,7 +408,8 @@ void daemon_receive_shell_data(DaemonServer *that, size_t client_index)
 	if (client->pty_fd == -1)
 		return ;
 
-	char buffer[FT_SHIELD_MESSAGE_SIZE];
+	char buffer[FT_SHIELD_MESSAGE_SIZE + 1];
+	memset(buffer, 0, FT_SHIELD_MESSAGE_SIZE + 1);
 	ssize_t rec_bytes = read(client->pty_fd, buffer, FT_SHIELD_MESSAGE_SIZE);
 	if (rec_bytes <= 0)
 	{
@@ -393,7 +417,7 @@ void daemon_receive_shell_data(DaemonServer *that, size_t client_index)
 		client->state = CLIENT_DISCONNECTED;
 		return ;
 	}
-	client->output_buffer.append(buffer, rec_bytes);
+	kr_strappend(&client->out_buffer, buffer);
 	client->pollfd->events |= POLLOUT;
 }
 
@@ -477,7 +501,8 @@ void daemon_run(DaemonServer *that)
 					if (that->pollfd_array[i].revents & (POLLHUP | POLLERR))
 					{
 						// the shell is closed, cleanup
-						close(that->pollfd_array[i].fd);
+						shutdown(this->pollfd_array[i].fd, SHUT_RDWR);
+						close(this->pollfd_array[i].fd);
 						that->pollfd_array[i].fd = -1;
 						that->pollfd_array[i].events = 0;
 						that->pollfd_array[i].revents = 0;
@@ -552,7 +577,7 @@ void daemon_run(DaemonServer *that)
 						daemon_disconnect_client(that, that->poll_metadata[i].client_index);
 						break;
 					}
-					if (that->pollfd_array[i].revents & POLLOUT && that->client_list[that->poll_metadata[i].client_index].output_buffer.size() != 0)		// data send
+					if (that->pollfd_array[i].revents & POLLOUT && that->client_list[that->poll_metadata[i].client_index].out_buffer.len != 0)		// data send
 					{
 						DEBUG("Sending message to client %d\n", that->poll_metadata[i].client_index);
 						daemon_send_message(that, that->poll_metadata[i].client_index);	// send message to client

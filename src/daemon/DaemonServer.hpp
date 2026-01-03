@@ -1,13 +1,14 @@
 #ifndef DAEMON_SERVER_HPP
 #define DAEMON_SERVER_HPP
-#include <ctime>
-#include <string>
-#include <sys/socket.h>
-#include <sys/types.h>
+
+#include <errno.h>
 #include <netdb.h>
 #include <poll.h>
-#include <string>
 #include <shield/commands.h>
+#include <shield/string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <time.h>
 
 #if MATT_MODE
 #include "Tintin_reporter.hpp"
@@ -68,11 +69,14 @@ typedef struct client
 	fd_metadata_t* metadata;
 	enum client_state state;
 	time_t last_seen;
-	//TODO: get rid of those buffers
-	std::string input_buffer;		// what the client sends to the server
-	std::string output_buffer;		// what the server sends to the client
+	kr_string_t in_buffer;
+	kr_string_t out_buffer;
+
 	int pty_fd;
 }	client_t;
+
+int client_write(client_t *client, kr_string_t *string);
+int client_read(client_t *client, kr_string_t *string);
 
 static const command_t commands[] =
 {
