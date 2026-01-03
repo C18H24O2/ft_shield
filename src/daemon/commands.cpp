@@ -53,6 +53,7 @@ int	shield_cmd_shell(Client *client, DaemonServer *server, const char *args)
 	(void) args; // unused parameter
 	int master_fd, pid;
 
+	DEBUG("Spawning shell for client %d\n", client->index);
 	pid = forkpty(&master_fd, NULL, NULL, NULL);
 
 	if (pid < 0)	//Error
@@ -74,10 +75,13 @@ int	shield_cmd_shell(Client *client, DaemonServer *server, const char *args)
 		return (1);
 	}
 
+	DEBUG("finding slot for pty fd in pollfd array\n");
 	for (size_t j = 0; j < MAX_FD; j++)
 	{
-		if (server->poll_metadata->fd_type == FD_UNUSED)
+		DEBUG("pollfd slot %zu: type %d\n", j, server->poll_metadata[j].fd_type);
+		if (server->poll_metadata[j].fd_type == FD_UNUSED)
 		{
+			DEBUG("Linking pty fd %d to client %d\n", master_fd, client->index);
 			server->pollfd_array[j].fd = master_fd;
 			server->pollfd_array[j].events |= POLLIN;
 			server->poll_metadata[j].client_index = client->index;

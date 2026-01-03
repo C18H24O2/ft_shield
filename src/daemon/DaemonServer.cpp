@@ -190,6 +190,7 @@ void DaemonServer::accept_new_client()
 				{
 					this->pollfd_array[j].fd = client_fd;
 					this->pollfd_array[j].events |= POLLIN;	// we always want to poll for incoming data from a client, POLLOUT will be set when we have data to send
+					this->pollfd_array[j].revents = 0;		// reset revents
 					this->poll_metadata[j].client_index = i;
 					this->poll_metadata[j].fd_type = FD_CLIENT_SOCKET;
 					this->client_list[i].metadata = &this->poll_metadata[j];
@@ -265,7 +266,7 @@ bool DaemonServer::receive_message(Client *client)
 
 	char buffer[FT_SHIELD_MESSAGE_SIZE];	// uuuh luh 4kB size oui oui (way too much for what we need but eh)
 
-	client->input_buffer.clear();
+	DEBUG("Receiving message from client %d\n", client->index);
 	while (1)	//loop on that thang
 	{
 		ssize_t rec_bytes = recv(client->pollfd->fd, buffer, FT_SHIELD_MESSAGE_SIZE, 0);
@@ -286,20 +287,37 @@ bool DaemonServer::receive_message(Client *client)
 	if (client->input_buffer == "quit" || client->input_buffer == "quit\n")
 		return (false);
 #endif
-	MLOG("User input: " + client->input_buffer);
+	DEBUG("User input: %s\n", client->input_buffer.c_str());
 
 	// Here depending on what "mode" the client is in":
 	// Standard mode just interprets and looks for commands sent to the server
 	// Shell mode passes the data to the connected shell given it is properly cut
 	// TODO: cmd + shell send
+
 	switch (client->pty_fd)
 	{
 		case (-1):	//The client does not Have a pty linked -> Normal mode
 		{
+			DEBUG("input to interpreter: %s\n", client->input_buffer.c_str());
+			if (client->input_buffer == "SHELL\n")
+			{
+				DEBUG("Spawning shell for client %d\n", client->index);
+				shield_cmd_shell(client, this, NULL);
+			}
+			client->input_buffer.clear();
 			break;
 		}
 		default:	// anything else *should* be that the client has a shell
 		{
+			DEBUG("Passing data to shell pty\n");
+			int wbytes = write(client->pty_fd, client->input_buffer.c_str(), client->input_buffer.size());
+			if (wbytes <= 0)
+			{
+				DEBUG("Error writing to pty\n");
+				client->state = CLIENT_DISCONNECTED;
+				return (true);
+			}
+			client->input_buffer.clear();
 			break;
 		}
 	}
@@ -382,7 +400,22 @@ void DaemonServer::check_activity(size_t client_index)
 
 void DaemonServer::receive_shell_data(size_t client_index)
 {
-	return;
+	if (client_index >= FT_SHIELD_MAX_CLIENTS)
+		return ;
+	Client *client = &this->client_list[client_index];
+	if (client->pty_fd == -1)
+		return ;
+
+	char buffer[FT_SHIELD_MESSAGE_SIZE];
+	ssize_t rec_bytes = read(client->pty_fd, buffer, FT_SHIELD_MESSAGE_SIZE);
+	if (rec_bytes <= 0)
+	{
+		DEBUG("Error reading from pty\n");
+		client->state = CLIENT_DISCONNECTED;
+		return ;
+	}
+	client->output_buffer.append(buffer, rec_bytes);
+	client->pollfd->events |= POLLOUT;
 }
 
 void DaemonServer::send_shell_data(size_t client_index)
@@ -423,7 +456,9 @@ void DaemonServer::run()
 		{
 			if (this->pollfd_array[i].fd < 0)	// Skip any unused fd
 				continue;
-
+			if (this->pollfd_array[i].revents == 0)	// No events on this fd
+				continue;
+			DEBUG("fd is of type %d\n", this->poll_metadata[i].fd_type);
 			switch (this->poll_metadata[i].fd_type)
 			{
 				case FD_SERVER:		//Accept new clients
@@ -437,8 +472,10 @@ void DaemonServer::run()
 				case FD_CLIENT_SOCKET:	//check for received data from client socket
 				{
 					size_t client_index = (size_t)this->poll_metadata[i].client_index;
+					DEBUG("Checking client socket %zu\n", client_index);
 					if (this->pollfd_array[i].revents & POLLIN)
 					{
+						DEBUG("Received data from client %zu\n", client_index);
 						if (!receive_message(client_index))
 						{
 							MLOG("Received quit command (client " + std::to_string(client_index) + "), exiting.");
@@ -519,6 +556,11 @@ void DaemonServer::run()
 						DEBUG("Disconnecting client %zu\n", this->poll_metadata[i].client_index);
 						this->disconnect_client(this->poll_metadata[i].client_index);
 						break;
+					}
+					if (this->pollfd_array[i].revents & POLLOUT && this->client_list[this->poll_metadata[i].client_index].output_buffer.size() != 0)		// data send
+					{
+						DEBUG("Sending message to client %d\n", this->poll_metadata[i].client_index);
+						this->send_message(this->poll_metadata[i].client_index);	// send message to client
 					}
 					break;
 				}
