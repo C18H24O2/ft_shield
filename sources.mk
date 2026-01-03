@@ -3,7 +3,7 @@
 
 SRCS += daemon/DaemonServer.cpp
 SRCS += daemon/Tintin_reporter.cpp
-SRCS += daemon/commands.cpp
+SRCS += daemon/commands.cc
 SRCS += daemon/daemonize.cc
 SRCS += daemon/main.cc
 SRCS += daemon/qio.cc

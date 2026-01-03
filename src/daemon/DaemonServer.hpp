@@ -7,7 +7,7 @@
 #include <netdb.h>
 #include <poll.h>
 #include <string>
-#include <shield/commands.hpp>
+#include <shield/commands.h>
 
 #if MATT_MODE
 #include "Tintin_reporter.hpp"

