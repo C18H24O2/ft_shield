@@ -6,14 +6,14 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/28 22:00:44 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/03 19:10:25 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/03 19:26:31 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef COMMANDS_HPP
 #define COMMANDS_HPP
 
-class DaemonServer;					// forward declaration
+struct DaemonServer;					// forward declaration
 typedef struct client client_t;		// forward declaration
 
 typedef struct

