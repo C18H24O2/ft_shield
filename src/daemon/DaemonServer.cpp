@@ -407,7 +407,7 @@ void DaemonServer::receive_shell_data(size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
 		return ;
-	client_t *client = &this->client_list[client_index];
+	client_t *client = &(this->client_list[client_index]);
 	if (client->pty_fd == -1)
 		return ;
 
