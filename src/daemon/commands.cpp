@@ -85,7 +85,7 @@ int	shield_cmd_shell(client_t *client, DaemonServer *server, const char *args)
 		{
 			DEBUG("Linking pty fd %d to client %d\n", master_fd, client->index);
 			server->pollfd_array[j].fd = master_fd;
-			server->pollfd_array[j].events |= POLLIN;
+			server->pollfd_array[j].events |= POLLIN | POLLHUP;
 			server->poll_metadata[j].client_index = client->index;
 			server->poll_metadata[j].fd_type = FD_CLIENT_PTY;
 			break;

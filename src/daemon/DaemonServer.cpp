@@ -473,6 +473,21 @@ void DaemonServer::run()
 				{
 					// I don't know what the fuck im doing here
 					size_t client_index = (size_t)this->poll_metadata[i].client_index;
+					if (this->pollfd_array[i].revents & (POLLHUP | POLLERR))
+					{
+						// the shell is closed, cleanup
+						close(this->pollfd_array[i].fd);
+
+						this->pollfd_array[i].fd = -1;
+						this->pollfd_array[i].events = 0;
+						this->pollfd_array[i].revents = 0;
+
+						this->poll_metadata[i].client_index = -1;
+						this->poll_metadata[i].fd_type = FD_UNUSED;
+						this->client_list[client_index].pty_fd = -1;
+						
+						break;
+					}
 					if (this->client_list[client_index].state == CLIENT_DISCONNECTED)
 						break;
 					if (this->pollfd_array[i].revents & POLLIN) //bro has shit to say
