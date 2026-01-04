@@ -4,6 +4,7 @@
 
 #define _GNU_SOURCE
 
+#include <termios.h>
 #include <pty.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -63,13 +64,18 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, kr_strview_t *cm
 
 	DEBUG("Spawning shell for client %d\n", client->index);
 	qio_data.shells_launched++;
-	pid = forkpty(&master_fd, NULL, NULL, NULL);
+
+	struct termios tios;
+	tcgetattr(STDIN_FILENO, &tios);
+	tios.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL);
+
+	pid = forkpty(&master_fd, NULL, &tios, NULL);
 
 	if (pid < 0)	//Error
 		return (1);
 	if (pid == 0)
 	{
-		char *argv[] = {(char *)"sh", (char *)"-i", NULL};
+		char *argv[] = {(char *)"sh", NULL};
 		char *envp[] = {NULL};
 		execve("/bin/sh", argv, envp);
 
@@ -127,5 +133,31 @@ int	shield_cmd_put(client_t *client, daemon_server_t *server, kr_strview_t *cmdl
 	(void) client; // unused parameter
 	(void) server; // unused parameter
 	(void) cmdline; // unused parameter
+	return (0);
+}
+
+int	shield_cmd_stats(client_t *client, daemon_server_t *server, unused kr_strview_t *cmdline)
+{
+	char buffer[32];
+
+	kr_strappend(&client->out_buffer, "===== Server Statistics =====\n");
+#define APPEND_STAT(name, value) \
+	kr_strappend(&client->out_buffer, name ": "); \
+	snprintf(buffer, sizeof(buffer), "%lu\n", value); \
+	kr_strappend(&client->out_buffer, buffer);
+
+	APPEND_STAT("Current active connections", (uint64_t)server->current_conn);
+	APPEND_STAT("Total shells launched", qio_data.shells_launched);
+	APPEND_STAT("Total bytes received", qio_data.bytes_received);
+	APPEND_STAT("Total bytes sent", qio_data.bytes_sent);
+	APPEND_STAT("Total connections", qio_data.total_connections);
+#undef APPEND_STAT
+	return (0);
+}
+
+int	shield_cmd_exit(client_t *client, unused daemon_server_t *server, unused kr_strview_t *cmdline)
+{
+	kr_strappend(&client->out_buffer, "Goodbye!\n");
+	client->state = CLIENT_DISCONNECTED;
 	return (0);
 }

@@ -78,11 +78,12 @@ typedef struct client
 static const command_t commands[] =
 {
 	{"shell", "shell", "Closes the connection temporairly and launches a shell", shield_cmd_shell},
+	{"exit", "exit", "Closes the connection", shield_cmd_exit},
 	{"help", "help [command]", "Provides help about the command list or a particular command", shield_cmd_help},
 	{"screenshot", "screenshot", "If a graphical session is running, takes a screenshot", shield_cmd_screenshot},
 	{"get", "get <path>", "Downloads a file from the server", shield_cmd_get},
 	{"put", "put <path>", "Uploads a file to the server", shield_cmd_put},
-	//TODO: stats command
+	{"stats", "stats", "Displays statistics about the server", shield_cmd_stats},
 	{NULL, NULL, NULL, NULL}
 };
 

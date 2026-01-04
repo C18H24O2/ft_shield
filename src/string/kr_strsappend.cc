@@ -1,23 +1,33 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   kr_strappend.cc                                    :+:      :+:    :+:   */
+/*   kr_strsappend.cc                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/03 22:53:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/05 00:01:46 by kiroussa         ###   ########.fr       */
+/*   Created: 2026/01/04 23:59:14 by kiroussa          #+#    #+#             */
+/*   Updated: 2026/01/05 00:02:12 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield/string.h>
 
-bool	kr_strappend(kr_string_t *str, const char *s)
+bool	kr_strsappend(kr_string_t *str, kr_strview_t *s)
 {
-	if (!str)
+	if (!str || !s)
 		return (false);
-	if (!s)
+	size_t added_len = s->len;
+	if (added_len == 0)
 		return (true);
-	kr_strview_t view = kr_strview(s);
-	return (kr_strsappend(str, &view));
+	size_t new_len = str->len + added_len;
+	if (new_len < str->len + 1024)
+		new_len = str->len + 1024;
+	if (!kr_strgrow(str, new_len))
+		return (false);
+	if (str->ptr)
+	{
+		memcpy(str->ptr + str->len, s->ptr, added_len);
+		str->len += added_len;
+	}
+	return (true);
 }

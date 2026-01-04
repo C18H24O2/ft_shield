@@ -1,23 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   kr_strappend.cc                                    :+:      :+:    :+:   */
+/*   kr_strview.cc                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/03 22:53:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/05 00:01:46 by kiroussa         ###   ########.fr       */
+/*   Created: 2026/01/05 00:01:07 by kiroussa          #+#    #+#             */
+/*   Updated: 2026/01/05 00:01:30 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield/string.h>
 
-bool	kr_strappend(kr_string_t *str, const char *s)
+kr_strview_t	kr_strview(const char *str)
 {
-	if (!str)
-		return (false);
-	if (!s)
-		return (true);
-	kr_strview_t view = kr_strview(s);
-	return (kr_strsappend(str, &view));
+	return (kr_strview_t){.ptr = (char *) str, .len = strlen(str), .cap = 0, .owned = false};
 }

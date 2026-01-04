@@ -22,10 +22,12 @@ CPPGUARD_END
 
 static int sig_received = 0;
 
+#define COMMAND_PROMPT "> "
+
 void handle_signals(int sig)
 {
 	DEBUG("Received signal '%s' (%d)!\n", strsignal(sig), sig);
-	if (sig == SIGUSR1)
+	if (sig == SIGUSR1 || sig == SIGCHLD)
 		sig_received = sig;
 #if SHIELD_DEBUG
 	if (sig == SIGINT)
@@ -72,7 +74,7 @@ int server_init(daemon_server_t *that)
 		that->client_list[i].state = CLIENT_UNUSED;
 		that->client_list[i].last_seen = 0;
 		that->client_list[i].in_buffer = kr_string_empty;
-		that->client_list[i].out_buffer = kr_string_empty;
+		that->client_list[i].out_buffer = kr_strnew(COMMAND_PROMPT);
 		that->client_list[i].metadata = NULL;
 	}
 	that->shell_next = false;
@@ -265,6 +267,7 @@ void server_clear_client(daemon_server_t *that, client_t *client)
 	// clear but don't free them yet, we wouldn't want to have to re-allocate memory down the line now do we
 	kr_strclr(&client->in_buffer);
 	kr_strclr(&client->out_buffer);
+	kr_strappend(&client->out_buffer, COMMAND_PROMPT);
 }
 
 void server_disconnect_client(daemon_server_t *that, size_t client_index)
@@ -316,11 +319,12 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 		if (rec_bytes < FT_SHIELD_MESSAGE_SIZE)
 			break;
 	}
+
+	DEBUG("User input: %.*s\n", client->in_buffer.len, client->in_buffer.ptr);
 #if MATT_MODE
-	if (kr_strcmp(&client->in_buffer, "quit\n") == 0)
+	if (kr_strcmp(&client->in_buffer, "quit") == 0 || kr_strcmp(&client->in_buffer, "quit\n") == 0)
 		return (false);
 #endif
-	DEBUG("User input: %.*s\n", client->in_buffer.len, client->in_buffer.ptr);
 
 	// Here depending on what "mode" the client is in":
 	// Standard mode just interprets and looks for commands sent to the server
@@ -336,44 +340,45 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 
 		DEBUG("command: %.*s\n", (int) command.len, command.ptr);
 
+		bool found = false;
 		for (int i = 0; commands[i].command; i++)
 		{
 			if (kr_strcmp(&command, commands[i].command) == 0)
 			{
+				found = true;
 				DEBUG("Command %s found\n", commands[i].command);
 				commands[i].fn(client, that, &client->in_buffer);
 				break;
 			}
 		}
+		if (!found)
+		{
+			kr_strappend(&client->out_buffer, "Unknown command: ");
+			kr_strsappend(&client->out_buffer, &command);
+			kr_strappend(&client->out_buffer, "\n" COMMAND_PROMPT);
+		}
+		else if (client->state != CLIENT_DISCONNECTED && client->pty_fd == -1)
+			kr_strappend(&client->out_buffer, COMMAND_PROMPT);
 
 		kr_strclr(&client->in_buffer);
 		return true;
 	}
 
-	switch (client->pty_fd)
+	DEBUG("Passing data to shell pty\n");
+	size_t written = 0;
+	while (written < client->in_buffer.len)
 	{
-		case -1:	//The client does not Have a pty linked -> Normal mode
-			break;
-
-		default:	// anything else *should* be that the client has a shell
-			DEBUG("Passing data to shell pty\n");
-			size_t written = 0;
-			while (written < client->in_buffer.len)
-			{
-				int wbytes = write(client->pty_fd, client->in_buffer.ptr + written, client->in_buffer.len - written);
-				if (wbytes <= 0)
-				{
-					DEBUG("Error writing to pty\n");
-					client->state = CLIENT_DISCONNECTED;
-					return (true);
-				}
-				written += wbytes;
-			}
-			break;
+		int wbytes = write(client->pty_fd, client->in_buffer.ptr + written, client->in_buffer.len - written);
+		if (wbytes <= 0)
+		{
+			DEBUG("Error writing to pty\n");
+			client->state = CLIENT_DISCONNECTED;
+			return (true);
+		}
+		written += wbytes;
 	}
 	kr_strclr(&client->in_buffer);
-
-	return (true);
+	return true;
 }
 
 #if SHIELD_DEBUG
@@ -457,6 +462,8 @@ void server_receive_shell_data(daemon_server_t *that, size_t client_index)
 		client->state = CLIENT_DISCONNECTED;
 		return ;
 	}
+	DEBUG("Read %zu bytes from pty\n", rec_bytes);
+	DEBUG("Read buffer: %.*s\n", (int)rec_bytes, buffer);
 	kr_strappend(&client->out_buffer, buffer);
 	client->pollfd->events |= POLLOUT;
 }
@@ -468,23 +475,55 @@ void server_send_shell_data(daemon_server_t *that, size_t client_index)
 	return;
 }
 
+void server_client_check_shell(daemon_server_t *that)
+{
+	// Check which clients have had a shell opened,
+	// and check if the shell is now dead.
+	//
+	// This is to either disconnect the client or make them fallback
+	// to the command prompt.
+	
+	// TODO: implement :3
+}
+
 void server_run(daemon_server_t *that)
 {
 	MLOG("Server running, process id: " + std::to_string(getpid()));
 
-	while (!sig_received || sig_received == SIGUSR1)
+	while (true)
 	{
+		if (sig_received == SIGINT)
+			break;
+
+		if (sig_received == SIGCHLD)
+		{
+			server_client_check_shell(that);
+			sig_received = 0;
+		}
 		if (sig_received == SIGUSR1)
 		{
 			MLOG("Another daemon instance is already running, not starting another.");
 			sig_received = 0;
 		}
+
+		for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++)
+		{
+			client_t *client = &(that->client_list[i]);
+			if (client->out_buffer.len != 0 && client->pollfd)
+				client->pollfd->events |= POLLOUT;
+		}
+
 		DEBUG("Polling for events on %d connections\n", that->current_conn);
 		if (poll(that->pollfd_array, MAX_FD, FT_SHIELD_TIMEOUT * 1000) == -1)	//At the club, straight up polling it, and by it lets jsut say.. my static array 
 		{
 			if (sig_received == SIGUSR1)
 			{
 				MLOG("Another daemon instance is already running, not starting another.");
+				sig_received = 0;
+			}
+			if (sig_received == SIGCHLD)
+			{
+				server_client_check_shell(that);
 				sig_received = 0;
 			}
 			if (sig_received != 0)
@@ -611,22 +650,25 @@ void server_run(daemon_server_t *that)
 				}
 				case FD_CLIENT_SOCKET:
 				{
-					if (that->client_list[that->poll_metadata[i].client_index].state == CLIENT_DISCONNECTED)
+					int client_index = that->poll_metadata[i].client_index;
+					client_t *client = &(that->client_list[client_index]);
+					if (that->pollfd_array[i].revents & POLLOUT && client->out_buffer.len != 0)		// data send
 					{
-						DEBUG("Disconnecting client %zu\n", that->poll_metadata[i].client_index);
-						server_disconnect_client(that, that->poll_metadata[i].client_index);
-						break;
+						DEBUG("Sending message to client %d\n", client_index);
+						server_send_message(that, client_index);	// send message to client
 					}
-					if (that->pollfd_array[i].revents & POLLOUT && that->client_list[that->poll_metadata[i].client_index].out_buffer.len != 0)		// data send
+					if (client->state == CLIENT_DISCONNECTED && client->out_buffer.len == 0)
 					{
-						DEBUG("Sending message to client %d\n", that->poll_metadata[i].client_index);
-						server_send_message(that, that->poll_metadata[i].client_index);	// send message to client
+						DEBUG("Disconnecting client %d\n", client_index);
+						server_disconnect_client(that, client_index);
+						break;
 					}
 					break;
 				}
 				case FD_CLIENT_PTY:
 				{
 					// nothing to do for pty fd here (shut up compiler)
+					// k: if there is only a single case in which it's doing something, why not use a fucking if statement
 					break;
 				}
 				default:

@@ -17,3 +17,4 @@ development.mk
 hasher3000
 /test.s
 *.bin
+vgcore.*
