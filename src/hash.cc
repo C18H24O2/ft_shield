@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/29 00:47:37 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/03 17:57:51 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 22:56:12 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,12 @@
 
 #include <stddef.h>
 #include <stdint.h>
+
+#include <shield/guard.h>
+CPPGUARD_START
 #include <nmmintrin.h>
 #include <immintrin.h>
+CPPGUARD_END
 
 // 0x FF FF FF FF FF FF FF FF
 //    ^^^^^^^^^^^

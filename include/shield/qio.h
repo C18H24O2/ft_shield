@@ -6,11 +6,12 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/03 18:45:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/03 18:46:34 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 22:59:08 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef __SHIELD_QIO_H__
+#define __SHIELD_QIO_H__
 
 #include <stddef.h>
 #include <stdint.h>
@@ -24,3 +25,5 @@ typedef struct
 }	qio_data_t;
 
 extern qio_data_t	qio_data;
+
+#endif // __SHIELD_QIO_H__

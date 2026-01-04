@@ -1,23 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   kr_strclr.cc                                       :+:      :+:    :+:   */
+/*   guard.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/03 22:47:13 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/04 18:08:39 by kiroussa         ###   ########.fr       */
+/*   Created: 2026/01/04 22:53:55 by kiroussa          #+#    #+#             */
+/*   Updated: 2026/01/04 22:59:38 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <shield/string.h>
-#include <string.h>
+#ifndef __SHIELD_GUARD_H__
+#define __SHIELD_GUARD_H__
 
-void	kr_strclr(kr_string_t *str)
-{
-	if (str)
-	{
-		str->len = 0;
-		memset(str->ptr, 0, str->cap);
-	}
-}
+#ifdef __cplusplus
+#define CPPGUARD_START extern "C" {
+#define CPPGUARD_END }
+#else // !__cplusplus
+#define CPPGUARD_START
+#define CPPGUARD_END
+#endif // __cplusplus
+
+#endif // __SHIELD_GUARD_H__

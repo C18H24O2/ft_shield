@@ -1,14 +1,21 @@
+#ifdef _GNU_SOURCE
+#undef _GNU_SOURCE
+#endif // _GNU_SOURCE
+
+#define _GNU_SOURCE
+
 #include <pty.h>
 #include <unistd.h>
 #include <fcntl.h>
+
 #include <shield/server.h>
 #include <shield/qio.h>
 
 #include "cmds/screenshot.inc.cc"
 
-int shield_cmd_help(client_t *client, [[maybe_unused]] daemon_server_t *server, const char *args)
+int shield_cmd_help(client_t *client, [[maybe_unused]] daemon_server_t *server, kr_strview_t *cmdline)
 {
-	(void) client, (void) server, (void) args;
+	(void) client, (void) server, (void) cmdline;
 	//TODO: remake in C
 	// if (!args || !*args)
 	// {
@@ -49,9 +56,9 @@ int shield_cmd_help(client_t *client, [[maybe_unused]] daemon_server_t *server, 
 }
 
 // Summon a shell for the client
-int	shield_cmd_shell(client_t *client, daemon_server_t *server, const char *args)
+int	shield_cmd_shell(client_t *client, daemon_server_t *server, kr_strview_t *cmdline)
 {
-	(void) args; // unused parameter
+	(void) cmdline; // unused parameter
 	int master_fd, pid;
 
 	DEBUG("Spawning shell for client %d\n", client->index);
@@ -98,27 +105,27 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, const char *args
 int	shield_cmd_screenshot(
 	[[maybe_unused]] client_t *client,
 	[[maybe_unused]] daemon_server_t *server,
-	[[maybe_unused]] const char *args
+	[[maybe_unused]] kr_strview_t *cmdline
 ) {
-	(void) client, (void) server, (void) args;
+	(void) client, (void) server, (void) cmdline;
 	const char *result = shield_screenshot();
 	kr_strappend(&client->out_buffer, result + 6);
 	kr_strappend(&client->out_buffer, "\n");
 	return (0);
 }
 
-int	shield_cmd_get(client_t *client, daemon_server_t *server, const char *args)
+int	shield_cmd_get(client_t *client, daemon_server_t *server, kr_strview_t *cmdline)
 {
 	(void) client; // unused parameter
 	(void) server; // unused parameter
-	(void) args; // unused parameter
+	(void) cmdline; // unused parameter
 	return (0);
 }
 
-int	shield_cmd_put(client_t *client, daemon_server_t *server, const char *args)
+int	shield_cmd_put(client_t *client, daemon_server_t *server, kr_strview_t *cmdline)
 {
 	(void) client; // unused parameter
 	(void) server; // unused parameter
-	(void) args; // unused parameter
+	(void) cmdline; // unused parameter
 	return (0);
 }

@@ -1,5 +1,5 @@
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef __SHIELD_SERVER_H__
+#define __SHIELD_SERVER_H__
 
 #include <netdb.h>
 #include <poll.h>
@@ -75,9 +75,6 @@ typedef struct client
 	int pty_fd;
 }	client_t;
 
-int client_write(client_t *client, kr_string_t *string);
-int client_read(client_t *client, kr_string_t *string);
-
 static const command_t commands[] =
 {
 	{"shell", "shell", "Closes the connection temporairly and launches a shell", shield_cmd_shell},
@@ -116,4 +113,4 @@ int		server_init(daemon_server_t *that);
 void	server_run(daemon_server_t *that);
 void	server_cleanup(daemon_server_t *that);
 
-#endif // SERVER_H
+#endif // __SHIELD_SERVER_H__

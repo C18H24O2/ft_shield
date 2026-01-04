@@ -6,22 +6,28 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/04 00:20:45 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 23:01:08 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <shield.h>
-#include <shield/daemon.h>
-#include <stdio.h>
-#include <signal.h>
-#include <unistd.h>
-#include "antidebug.inc.cc"
-
+#include <shield/guard.h>
+CPPGUARD_START
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif // _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+CPPGUARD_END
+
+#include <shield.h>
+#include <shield/daemon.h>
+
+#include "antidebug.inc.cc"
 
 /**
  * @brief	Check if a process is alive.

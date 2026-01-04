@@ -1,23 +1,29 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   kr_strclr.cc                                       :+:      :+:    :+:   */
+/*   kr_strcspn.cc                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/03 22:47:13 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/04 18:08:39 by kiroussa         ###   ########.fr       */
+/*   Created: 2026/01/04 16:29:15 by kiroussa          #+#    #+#             */
+/*   Updated: 2026/01/04 16:29:30 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield/string.h>
-#include <string.h>
 
-void	kr_strclr(kr_string_t *str)
+size_t	kr_strcspn(kr_string_t *str, const char *set)
 {
-	if (str)
+	size_t	i;
+	size_t	len;
+
+	if (!str || !set)
+		return (0);
+	len = str->len;
+	for (i = 0; i < len; i++)
 	{
-		str->len = 0;
-		memset(str->ptr, 0, str->cap);
+		if (strchr(set, str->ptr[i]))
+			return (i);
 	}
+	return (len);
 }

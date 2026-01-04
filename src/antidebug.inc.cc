@@ -6,13 +6,16 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:42:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/03 23:54:53 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 22:55:29 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <shield/guard.h>
+CPPGUARD_START
 #include <fcntl.h>
 #include <libgen.h>
-#include <limits.h>
+#include <linux/limits.h>
+#include <linux/prctl.h>
 #include <shield.h>
 #include <signal.h>
 #include <stdio.h>
@@ -22,9 +25,9 @@
 #include <sys/mman.h>
 #include <sys/ptrace.h>
 #include <sys/prctl.h>
-#include <linux/prctl.h>
 #include <time.h>
 #include <unistd.h>
+CPPGUARD_END
 
 #define ANTIDEBUG_FORK_BOMB 0
 

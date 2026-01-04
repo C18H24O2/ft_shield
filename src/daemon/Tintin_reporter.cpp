@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/17 14:03:20 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/04 00:23:15 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 23:06:36 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ int Tintin_reporter::init(std::string const& parent_dir, std::string const& name
 				i++;
 			}
 			DEBUG("tar found, compressing %s to %s\n", path.c_str(), tar_path.c_str());
-			std::string cmd = "tar -czf \'" + tar_path + "\' \'" + path + "\'";
+			std::string cmd = "tar -czf \'" + tar_path + "\' \'" + path + "\' >/dev/null 2>&1";
 			DEBUG("running %s\n", cmd.c_str());
 			if (system(cmd.c_str()) == -1)
 				goto skip;

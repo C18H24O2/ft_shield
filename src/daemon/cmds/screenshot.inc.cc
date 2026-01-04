@@ -6,27 +6,28 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/09 22:02:48 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/03 19:11:35 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 22:55:14 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <shield/guard.h>
+CPPGUARD_START
+#include <unistd.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
-#include <limits.h>
 #include <linux/limits.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <grp.h>
 #include <pwd.h>
-#include <shield.h>
 #include <immintrin.h>
-#include <unistd.h>
+CPPGUARD_END
 
 [[gnu::weak]]
 int	shield_path_check(const char *name);

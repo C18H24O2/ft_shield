@@ -32,14 +32,13 @@ else
 CC := clang
 endif
 CFLAGS := -Wall -fcolor-diagnostics -Wextra -msse4.2 -mrdrnd -Wno-unused-command-line-argument -DSHIELD_PASSWORD=\"$(shell $(MAKE_DIR)/hasher3000 $(PASSWORD))\"
-CFLAGS += 
 ifneq ($(USE_WARNINGS), 1)
 CFLAGS += -Werror
 endif
 SHIELD_PORT ?= 4242
 CFLAGS += -DMATT_MODE=$(PROJECT_TYPE) -DFT_SHIELD_PORT=$(SHIELD_PORT) -DFT_SHIELD_PORT_STRING=\"$(SHIELD_PORT)\"
 
-LD := clang++
+LD := $(CC)
 LDFLAGS := -lX11
 
 ifeq ($(USE_LIBFTSYS), 1)
@@ -49,6 +48,12 @@ endif
 
 CXX := clang++
 CXXFLAGS := $(CFLAGS)
+CXXFLAGS += -std=c++23
+ifeq ($(PROJECT_TYPE), 0)
+CFLAGS += -xc -std=c23
+else
+CFLAGS += -xc++ -std=c++23
+endif
 
 SRC_DIR := src
 BUILD_DIR := build

@@ -1,23 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   kr_strclr.cc                                       :+:      :+:    :+:   */
+/*   kr_strsubst.cc                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/03 22:47:13 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/04 18:08:39 by kiroussa         ###   ########.fr       */
+/*   Created: 2026/01/04 16:53:13 by kiroussa          #+#    #+#             */
+/*   Updated: 2026/01/04 16:58:23 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield/string.h>
-#include <string.h>
 
-void	kr_strclr(kr_string_t *str)
+kr_string_t	kr_strsubst(kr_string_t *str, size_t pos1, size_t pos2)
 {
-	if (str)
-	{
-		str->len = 0;
-		memset(str->ptr, 0, str->cap);
-	}
+	if (!str || !str->ptr || pos1 > str->len)
+		return (kr_string_empty);
+	if (pos2 > str->len)
+		pos2 = str->len;
+	return (kr_string_t) {
+		.ptr = str->ptr + pos1,
+		.len = pos2 - pos1,
+		.cap = 0,
+		.owned = false
+	};
 }

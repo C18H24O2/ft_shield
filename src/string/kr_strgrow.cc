@@ -6,12 +6,12 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/03 22:56:19 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/04 00:16:31 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 22:50:56 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield/string.h>
-#include <cstdlib>
+#include <stdlib.h>
 
 bool	kr_strgrow(kr_string_t *str, size_t new_cap)
 {

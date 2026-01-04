@@ -6,12 +6,13 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:06:32 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/04 00:23:15 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 23:01:22 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <errno.h>
 #include <fcntl.h>
+#include <shield.h>
 #include <shield/daemon.h>
 #include <stdbool.h>
 #include <sys/file.h>

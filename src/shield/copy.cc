@@ -6,12 +6,13 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 02:22:51 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/29 01:51:38 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 18:31:03 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #if !MATT_MODE
 
+#define _GNU_SOURCE
 #include <fcntl.h>
 #include <linux/limits.h>
 #include <shield.h>

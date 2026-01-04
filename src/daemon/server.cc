@@ -1,31 +1,44 @@
+#include <shield/guard.h>
+
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif // !_GNU_SOURCE
+
+CPPGUARD_START
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <shield/qio.h>
-#include <shield/server.h>
 #include <signal.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
+CPPGUARD_END
+
+#include <shield/qio.h>
+#include <shield/server.h>
 
 static int sig_received = 0;
 
 void handle_signals(int sig)
 {
+	DEBUG("Received signal '%s' (%d)!\n", strsignal(sig), sig);
 	if (sig == SIGUSR1)
 		sig_received = sig;
 #if SHIELD_DEBUG
 	if (sig == SIGINT)
+	{
 		sig_received = sig;
+		DEBUG("SHIELD_DEBUG is enabled, exiting.\n");
+	}
 #endif
-	DEBUG("Received signal '%s' (%d)!\n", strsignal(sig), sig);
 	return ;
 }
 
-void server_cleanup(daemon_server_t *that) {
+void server_cleanup(daemon_server_t *that)
+{
 	for (size_t i = 0; i < FT_SHIELD_MAX_CLIENTS; i++) {
 		if (that->client_list[i].state != CLIENT_UNUSED)
 			server_disconnect_client(that, i);
@@ -58,8 +71,8 @@ int server_init(daemon_server_t *that)
 		that->client_list[i].pty_fd = -1;
 		that->client_list[i].state = CLIENT_UNUSED;
 		that->client_list[i].last_seen = 0;
-		memset(&that->client_list[i].in_buffer, 0, sizeof(kr_string_t));
-		memset(&that->client_list[i].out_buffer, 0, sizeof(kr_string_t));
+		that->client_list[i].in_buffer = kr_string_empty;
+		that->client_list[i].out_buffer = kr_string_empty;
 		that->client_list[i].metadata = NULL;
 	}
 	that->shell_next = false;
@@ -71,13 +84,12 @@ int server_init(daemon_server_t *that)
 	MLOG("Server initializing...\n");
 #endif
 
-	addrinfo hints, *servinfo, *tmp;
-
-	memset(&hints, 0, sizeof(addrinfo));
+	struct addrinfo hints, *servinfo, *tmp;
+	memset(&hints, 0, sizeof(struct addrinfo));
 
 	hints.ai_family = AF_INET6;
 	hints.ai_socktype = SOCK_STREAM;
-	protoent *proto_struct = getprotobyname("TCP");
+	struct protoent *proto_struct = getprotobyname("TCP");
 	if (proto_struct == NULL)
 	{
 		MERR("getprotobyname failed\n");
@@ -150,15 +162,22 @@ int server_init(daemon_server_t *that)
 	sa.sa_handler = handle_signals;
 	sa.sa_flags = 0;
 	for (int i = 1; i < NSIG; i++) {
+		// SIGRT_32 because valgrind whines about it. also yes, SIGRTMIN is SIGRT_2, don't ask me why
+		if (i == SIGRTMIN + 30)
+			continue;
+		// a bunch of signals that are either uncatchable or dumb to catch
+		if (i == SIGKILL || i == SIGSTOP || i == SIGTSTP)
+			continue;
+		// No. We will NOT catch a Segfault. I *want* to crash. I want a stacktrace. I want actual useful errors. Bite me.
 		if (i == SIGSEGV)
 			continue;
 		if (sigaction(i, &sa, NULL) == -1) {
+			// if this fails that means either we are in a sandbox and we can't trust nobody, or the kernel will explode by..... about now, give or take.
 			MERR("sigaction failed for signal " + std::to_string(i));
 		}
 	}
 
 	MLOG("Server initialized.");
-
 	return 0;
 }
 
@@ -243,6 +262,7 @@ void server_clear_client(daemon_server_t *that, client_t *client)
 	client->pty_fd = -1;
 	client->last_seen = 0;
 	
+	// clear but don't free them yet, we wouldn't want to have to re-allocate memory down the line now do we
 	kr_strclr(&client->in_buffer);
 	kr_strclr(&client->out_buffer);
 }
@@ -288,10 +308,8 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 		}
 		qio_data.bytes_received += rec_bytes;
 		DEBUG("Received %zu bytes\n", rec_bytes);
-		DEBUG("Received %.*s\n", rec_bytes, buffer);
 		if (!kr_strappend(&client->in_buffer, buffer))
 			break;
-		DEBUG("New input buffer (%zu): %.*s\n", client->in_buffer.len, client->in_buffer.len, client->in_buffer.ptr);
 		//TODO: why is this here? shouldn't we keep accepting until maybe we get a \n?
 		// and if we don't want to, if it's not already there, let's maybe send the \n
 		// ourselves so the client is not "misaligned"
@@ -308,22 +326,36 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 	// Standard mode just interprets and looks for commands sent to the server
 	// Shell mode passes the data to the connected shell given it is properly cut
 	// TODO: cmd + shell send
+	
+	if (client->pty_fd == -1)
+	{
+		DEBUG("input to interpret: %.*s\n", (int) client->in_buffer.len, client->in_buffer.ptr);
+
+		size_t len = kr_strcspn(&client->in_buffer, " \n");
+		kr_strview_t command = kr_strsubst(&client->in_buffer, 0, len);
+
+		DEBUG("command: %.*s\n", (int) command.len, command.ptr);
+
+		for (int i = 0; commands[i].command; i++)
+		{
+			if (kr_strcmp(&command, commands[i].command) == 0)
+			{
+				DEBUG("Command %s found\n", commands[i].command);
+				commands[i].fn(client, that, &client->in_buffer);
+				break;
+			}
+		}
+
+		kr_strclr(&client->in_buffer);
+		return true;
+	}
 
 	switch (client->pty_fd)
 	{
-		case (-1):	//The client does not Have a pty linked -> Normal mode
-		{
-			DEBUG("input to interpreter: %.*s\n", client->in_buffer.len, client->in_buffer.ptr);
-			//TODO: command handling
-			if (kr_strcmp(&client->in_buffer, "SHELL\n") == 0)
-			{
-				DEBUG("Spawning shell for client %d\n", client->index);
-				shield_cmd_shell(client, that, NULL);
-			}
+		case -1:	//The client does not Have a pty linked -> Normal mode
 			break;
-		}
+
 		default:	// anything else *should* be that the client has a shell
-		{
 			DEBUG("Passing data to shell pty\n");
 			size_t written = 0;
 			while (written < client->in_buffer.len)
@@ -338,7 +370,6 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 				written += wbytes;
 			}
 			break;
-		}
 	}
 	kr_strclr(&client->in_buffer);
 
@@ -350,7 +381,7 @@ void print_client_info(client_t *client)
 {
 	DEBUG("CLIENT INFO:\n");
 	DEBUG("  Index: %d\n", (int) client->index);
-	DEBUG("  State: %d\n", static_cast<int>(client->state));
+	DEBUG("  State: %d\n", (int) (client->state));
 	DEBUG("  Last seen: %ld\n", client->last_seen);
 	DEBUG("  Input buffer size: %d\n", (int) client->in_buffer.len);
 	DEBUG("  Output buffer size: %d\n", (int) client->out_buffer.len);

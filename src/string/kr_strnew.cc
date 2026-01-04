@@ -6,18 +6,19 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/03 22:40:31 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/04 00:15:27 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/04 22:51:18 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield/string.h>
-#include <cstdlib>
+#include <stdlib.h>
+
+kr_string_t	kr_string_empty = {NULL, 0, 0, false};
 
 kr_string_t	kr_strnew(const char *s)
 {
-	kr_string_t	str;
+	kr_string_t	str = kr_string_empty;
 
-	memset(&str, 0, sizeof(kr_string_t));
 	if (!s)
 		return (str);
 	str.len = strlen(s);
