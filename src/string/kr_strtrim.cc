@@ -1,28 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   kr_strsubst.cc                                     :+:      :+:    :+:   */
+/*   kr_strtrim.cc                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/04 16:53:13 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/05 13:08:12 by kiroussa         ###   ########.fr       */
+/*   Created: 2026/01/05 13:39:00 by kiroussa          #+#    #+#             */
+/*   Updated: 2026/01/05 13:40:37 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield/string.h>
+#include <ctype.h>
 
-kr_strview_t	kr_strsubst(kr_string_t *str, size_t pos1, size_t pos2)
+kr_strview_t	kr_strtrim(kr_strview_t *str)
 {
-	if (!str || !str->ptr || pos1 > str->len)
+	if (!str)
 		return (kr_string_empty);
-	if (pos1 == 0 && pos2 == str->len)
-		return *str;
-	if (pos2 > str->len)
-		pos2 = str->len;
+	size_t i = 0;
+	while (i < str->len && isspace(str->ptr[i]))
+		i++;
+	if (i == str->len)
+		return (kr_string_empty);
+	size_t j = 0;
+	while (j < str->len && isspace(str->ptr[str->len - j - 1]))
+		j++;
+	if (str->len - i - j <= 0)
+		return (kr_string_empty);
 	return (kr_strview_t) {
-		.ptr = str->ptr + pos1,
-		.len = pos2 - pos1,
+		.ptr = str->ptr + i,
+		.len = str->len - i - j,
 		.cap = 0,
 		.owned = false
 	};

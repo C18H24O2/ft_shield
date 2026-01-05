@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/03 19:51:35 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/05 00:01:03 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/05 13:38:55 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,5 +48,7 @@ kr_strview_t	kr_strsubst(kr_string_t *str, size_t pos1, size_t pos2);
 
 int				kr_strcmp(kr_string_t *str, const char *s);
 size_t			kr_strcspn(kr_string_t *str, const char *set);
+size_t			kr_strspn(kr_strview_t *str, const char *accept);
+kr_strview_t	kr_strtrim(kr_strview_t *str);
 
 #endif // __SHIELD_STRING_H__

@@ -22,7 +22,13 @@ CPPGUARD_END
 
 static int sig_received = 0;
 
+#define SHIELD_MAX_PASSWORD_TRIES 3
+#define PASSWORD_PROMPT "Password: "
+#if MATT_MODE
+#define COMMAND_PROMPT ""
+#else // !MATT_MODE
 #define COMMAND_PROMPT "> "
+#endif // !MATT_MODE
 
 void handle_signals(int sig)
 {
@@ -74,7 +80,11 @@ int server_init(daemon_server_t *that)
 		that->client_list[i].state = CLIENT_UNUSED;
 		that->client_list[i].last_seen = 0;
 		that->client_list[i].in_buffer = kr_string_empty;
+#if MATT_MODE
 		that->client_list[i].out_buffer = kr_strnew(COMMAND_PROMPT);
+#else // !MATT_MODE
+		that->client_list[i].out_buffer = kr_strnew(PASSWORD_PROMPT);
+#endif // !MATT_MODE
 		that->client_list[i].metadata = NULL;
 	}
 	that->shell_next = false;
@@ -228,8 +238,13 @@ void server_accept_new_client(daemon_server_t *that)
 					break;
 				}
 			}
+			that->client_list[i].password_tries = 0;
 			that->client_list[i].index = i;
+#if MATT_MODE
 			that->client_list[i].state = CLIENT_CONNECTED;
+#else // !MATT_MODE
+			that->client_list[i].state = CLIENT_UNAUTHENTICATED;
+#endif // !MATT_MODE
 			time(&that->client_list[i].last_seen);
 			that->current_conn++;
 			return ;
@@ -263,11 +278,17 @@ void server_clear_client(daemon_server_t *that, client_t *client)
 	client->state = CLIENT_UNUSED;
 	client->pty_fd = -1;
 	client->last_seen = 0;
+
+	client->password_tries = 0;
 	
 	// clear but don't free them yet, we wouldn't want to have to re-allocate memory down the line now do we
 	kr_strclr(&client->in_buffer);
 	kr_strclr(&client->out_buffer);
+#if MATT_MODE
 	kr_strappend(&client->out_buffer, COMMAND_PROMPT);
+#else // !MATT_MODE
+	kr_strappend(&client->out_buffer, PASSWORD_PROMPT);
+#endif // !MATT_MODE
 }
 
 void server_disconnect_client(daemon_server_t *that, size_t client_index)
@@ -285,6 +306,8 @@ void server_disconnect_client(daemon_server_t *that, size_t client_index)
 	that->current_conn--;
 }
 
+bool	shield_hash_matches(uint64_t hash, char* c, size_t i);
+
 bool server_receive_message(daemon_server_t *that, size_t client_index)
 {
 	if (client_index >= FT_SHIELD_MAX_CLIENTS)
@@ -296,7 +319,8 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 	char buffer[FT_SHIELD_MESSAGE_SIZE + 1];	// uuuh luh 4kB size oui oui (way too much for what we need but eh)
 
 	DEBUG("Receiving message from client %d\n", client->index);
-	while (1)	//loop on that thang
+	size_t iter = 0;
+	while (iter < 10)	//loop on that thang
 	{
 		memset(buffer, 0, FT_SHIELD_MESSAGE_SIZE + 1);
 		ssize_t rec_bytes = recv(client->pollfd->fd, buffer, FT_SHIELD_MESSAGE_SIZE, 0);
@@ -313,17 +337,40 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 		DEBUG("Received %zu bytes\n", rec_bytes);
 		if (!kr_strappend(&client->in_buffer, buffer))
 			break;
-		//TODO: why is this here? shouldn't we keep accepting until maybe we get a \n?
-		// and if we don't want to, if it's not already there, let's maybe send the \n
-		// ourselves so the client is not "misaligned"
 		if (rec_bytes < FT_SHIELD_MESSAGE_SIZE)
 			break;
+		iter++;
 	}
 
-	DEBUG("User input: %.*s\n", client->in_buffer.len, client->in_buffer.ptr);
+	DEBUG("User input: %.*s\n", (int) client->in_buffer.len, client->in_buffer.ptr);
 #if MATT_MODE
 	if (kr_strcmp(&client->in_buffer, "quit") == 0 || kr_strcmp(&client->in_buffer, "quit\n") == 0)
 		return (false);
+#else // !MATT_MODE
+	if (client->state == CLIENT_UNAUTHENTICATED)
+	{
+		size_t len = kr_strcspn(&client->in_buffer, "\n");
+		kr_strview_t str = kr_strsubst(&client->in_buffer, 0, len);
+		if (shield_hash_matches(SHIELD_PASSWORD, str.ptr, len))
+		{
+			kr_strappend(&client->out_buffer, "Authentication successful\n" COMMAND_PROMPT);
+			client->state = CLIENT_CONNECTED;
+			time(&client->last_seen);
+		}
+		else
+		{
+			client->password_tries++;
+			if (client->password_tries >= SHIELD_MAX_PASSWORD_TRIES)
+			{
+				client->state = CLIENT_DISCONNECTED;
+				kr_strappend(&client->out_buffer, "Get out bro\n");
+			}
+			else
+				kr_strappend(&client->out_buffer, "Invalid password\n" PASSWORD_PROMPT);
+		}
+		kr_strclr(&client->in_buffer);
+		return true;
+	}
 #endif
 
 	// Here depending on what "mode" the client is in":

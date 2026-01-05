@@ -43,8 +43,8 @@
 enum client_state
 {
 	CLIENT_UNUSED,			// client_t slot is unused
-	CLIENT_CONNECTED,		// Initial state, awaiting authentication
-	CLIENT_AUTHENTICATED,	// Authenticated, awaiting command
+	CLIENT_UNAUTHENTICATED,	// Initial state, awaiting authentication
+	CLIENT_CONNECTED,		// Authenticated, awaiting command
 	CLIENT_DISCONNECTED,	// client_t has been set to be disconnected
 };
 
@@ -65,25 +65,27 @@ typedef struct
 typedef struct client
 {
 	int index;
-	struct pollfd* pollfd;
-	fd_metadata_t* metadata;
+	struct pollfd *pollfd;
+	fd_metadata_t *metadata;
 	enum client_state state;
 	time_t last_seen;
 	kr_string_t in_buffer;
 	kr_string_t out_buffer;
+	int password_tries;
 
 	int pty_fd;
 }	client_t;
 
 static const command_t commands[] =
 {
-	{"shell", "shell", "Closes the connection temporairly and launches a shell", shield_cmd_shell},
-	{"exit", "exit", "Closes the connection", shield_cmd_exit},
-	{"help", "help [command]", "Provides help about the command list or a particular command", shield_cmd_help},
-	{"screenshot", "screenshot", "If a graphical session is running, takes a screenshot", shield_cmd_screenshot},
-	{"get", "get <path>", "Downloads a file from the server", shield_cmd_get},
-	{"put", "put <path>", "Uploads a file to the server", shield_cmd_put},
+	{"help", "help", "Shows a list of commands", shield_cmd_help},
 	{"stats", "stats", "Displays statistics about the server", shield_cmd_stats},
+	{"screenshot", "screenshot", "If a graphical session is running, takes a screenshot", shield_cmd_screenshot},
+	{"shell", "shell", "TODO TODO TODO TODO TODO TODO", shield_cmd_shell},
+	{"exit", "exit", "Closes the connection", shield_cmd_exit},
+	//TODO: notify [message]
+	//TODO: broadcast [message]
+	//TODO: get [file]
 	{NULL, NULL, NULL, NULL}
 };
 

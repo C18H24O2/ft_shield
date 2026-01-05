@@ -1,29 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   kr_strsubst.cc                                     :+:      :+:    :+:   */
+/*   kr_strspn.cc                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/01/04 16:53:13 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/05 13:08:12 by kiroussa         ###   ########.fr       */
+/*   Created: 2026/01/05 12:01:54 by kiroussa          #+#    #+#             */
+/*   Updated: 2026/01/05 12:03:34 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield/string.h>
 
-kr_strview_t	kr_strsubst(kr_string_t *str, size_t pos1, size_t pos2)
+size_t	kr_strspn(kr_strview_t *str, const char *accept)
 {
-	if (!str || !str->ptr || pos1 > str->len)
-		return (kr_string_empty);
-	if (pos1 == 0 && pos2 == str->len)
-		return *str;
-	if (pos2 > str->len)
-		pos2 = str->len;
-	return (kr_strview_t) {
-		.ptr = str->ptr + pos1,
-		.len = pos2 - pos1,
-		.cap = 0,
-		.owned = false
-	};
+	if (!str || !accept)
+		return (0);
+	size_t i = 0;
+	while (i < str->len && strchr(accept, str->ptr[i]))
+		i++;
+	if (i >= str->len)
+		return (str->len);
+	return (i);
 }
