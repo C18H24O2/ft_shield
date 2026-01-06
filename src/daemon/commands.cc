@@ -17,6 +17,7 @@ CPPGUARD_END
 #include <shield/qio.h>
 
 #include "cmds/screenshot.inc.cc"
+#include "cmds/upload.inc.cc"
 
 int shield_cmd_help(client_t *client, unused daemon_server_t *server, unused kr_strview_t *line)
 {
@@ -147,11 +148,26 @@ int	shield_cmd_screenshot(
 	return (0);
 }
 
-int	shield_cmd_put(client_t *client, daemon_server_t *server, kr_strview_t *cmdline)
+int	shield_cmd_put(client_t *client, unused daemon_server_t *server, kr_strview_t *cmdline)
 {
-	(void) client; // unused parameter
-	(void) server; // unused parameter
-	(void) cmdline; // unused parameter
+	size_t size = kr_strcspn(cmdline, " ");
+	kr_strview_t filepath = kr_strsubst(cmdline, size, cmdline->len);
+	filepath = kr_strtrim(&filepath);
+	if (filepath.len == 0)
+	{
+		kr_strappend(&client->out_buffer, "Error: No file path specified\n");
+		return (1);
+	}
+
+	DEBUG("Uploading file '%.*s'\n", (int) filepath.len, filepath.ptr);
+
+	const char *result = shield_upload(&filepath);
+	bool error = strncmp(result, "ERROR|", 6) == 0;
+	if (error)
+		result += 6;
+	kr_strappend(&client->out_buffer, result);
+	if (error)
+		kr_strappend(&client->out_buffer, "\n");
 	return (0);
 }
 
