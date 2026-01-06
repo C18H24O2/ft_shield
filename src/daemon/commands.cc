@@ -71,8 +71,12 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, unused kr_strvie
 
 	pid = forkpty(&master_fd, NULL, &tios, NULL);
 
-	if (pid < 0)	//Error
+	if (pid < 0)
+	{	//Error
+		DEBUG("forkpty failed\n");
+		kr_strappend(&client->out_buffer, "ERROR|Could not spawn shell\n");
 		return (1);
+	}
 	if (pid == 0)
 	{
 		// server_cleanup(server); // this is probably a bad idea lol
@@ -88,6 +92,7 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, unused kr_strvie
 	{
 		DEBUG("fcntl on pty failed");
 		close(master_fd);
+		kr_strappend(&client->out_buffer, "ERROR|Could not spawn shell\n");
 		return (1);
 	}
 
@@ -107,13 +112,17 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, unused kr_strvie
 			break;
 		}
 	}
+	kr_strappend(&client->out_buffer, "Shell spawned successfully, use `access_shell` to enter it\n");
 	return (0);
 }
 
 int shield_cmd_access_shell(client_t *client, unused daemon_server_t *server, unused kr_strview_t *cmdline )
 {
 	if (client->pty_pollfd == NULL || client->pty_metadata == NULL)
+	{
+		kr_strappend(&client->out_buffer, "ERROR|No shell active, use `shell` to spawn a shell\n");
 		return (1);
+	}
 	client->shell_active = true;
 	client->pty_pollfd->events |= POLLIN;
 	return (0);
