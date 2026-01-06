@@ -73,7 +73,9 @@ typedef struct client
 	kr_string_t out_buffer;
 	int password_tries;
 
-	int pty_fd;
+	struct pollfd *pty_pollfd;
+	fd_metadata_t *pty_metadata;
+	bool shell_active;
 }	client_t;
 
 static const command_t commands[] =
@@ -83,6 +85,7 @@ static const command_t commands[] =
 	{"screenshot", "screenshot", "If a graphical session is running, takes a screenshot", shield_cmd_screenshot},
 	{"shell", "shell", "TODO TODO TODO TODO TODO TODO", shield_cmd_shell},
 	{"exit", "exit", "Closes the connection", shield_cmd_exit},
+	{"access_shell", "access_shell", "TODO TODO TODO TODO TODO TODO", shield_cmd_access_shell},
 	//TODO: notify [message]
 	//TODO: broadcast [message]
 	//TODO: get [file]
@@ -96,7 +99,6 @@ typedef struct daemon_server
 	client_t		client_list[FT_SHIELD_MAX_CLIENTS];
 	bool			should_accept;								// bool indicating if server should accept clients 
 	int				current_conn;								// number of currently connected clients
-	bool			shell_next;
 #if MATT_MODE
 	Tintin_reporter	logger;
 #endif

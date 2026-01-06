@@ -32,6 +32,7 @@ typedef struct
 
 int	shield_cmd_help(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);
 int	shield_cmd_shell(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);
+int shield_cmd_access_shell(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);
 int	shield_cmd_screenshot(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);
 int	shield_cmd_get(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);
 int	shield_cmd_put(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);

@@ -99,13 +99,23 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, unused kr_strvie
 		{
 			DEBUG("Linking pty fd %d to client %d\n", master_fd, client->index);
 			server->pollfd_array[j].fd = master_fd;
-			server->pollfd_array[j].events |= POLLIN | POLLHUP;
+			server->pollfd_array[j].events = 0;
 			server->poll_metadata[j].client_index = client->index;
 			server->poll_metadata[j].fd_type = FD_CLIENT_PTY;
+			client->pty_pollfd = &server->pollfd_array[j];
+			client->pty_metadata = &server->poll_metadata[j];
 			break;
 		}
 	}
-	client->pty_fd = master_fd;
+	return (0);
+}
+
+int shield_cmd_access_shell(client_t *client, unused daemon_server_t *server, unused kr_strview_t *cmdline )
+{
+	if (client->pty_pollfd == NULL || client->pty_metadata == NULL)
+		return (1);
+	client->shell_active = true;
+	client->pty_pollfd->events |= POLLIN;
 	return (0);
 }
 
