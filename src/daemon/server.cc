@@ -183,10 +183,7 @@ int server_init(daemon_server_t *that)
 		// No. We will NOT catch a Segfault. I *want* to crash. I want a stacktrace. I want actual useful errors. Bite me.
 		if (i == SIGSEGV)
 			continue;
-		if (sigaction(i, &sa, NULL) == -1) {
-			// if this fails that means either we are in a sandbox and we can't trust nobody, or the kernel will explode by..... about now, give or take.
-			MERR("sigaction failed for signal " + std::to_string(i));
-		}
+		sigaction(i, &sa, NULL);
 	}
 
 	MLOG("Server initialized.");
