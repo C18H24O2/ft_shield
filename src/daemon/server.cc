@@ -650,9 +650,13 @@ void server_run(daemon_server_t *that)
 						close_fd(that->pollfd_array[i].fd);
 						reset_fd(&that->pollfd_array[i], &that->poll_metadata[i]);
 
-						that->client_list[client_index].pty_pollfd = NULL;
-						that->client_list[client_index].pty_metadata = NULL;
-						that->client_list[client_index].shell_active = false;
+						client_t *client = &(that->client_list[client_index]);
+
+						client->pty_pollfd = NULL;
+						client->pty_metadata = NULL;
+						client->shell_active = false;
+						if (client->state == CLIENT_CONNECTED)
+							kr_strappend(&client->out_buffer, COMMAND_PROMPT);
 
 						break;
 					}
