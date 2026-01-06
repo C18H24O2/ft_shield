@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/06 17:01:10 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/06 17:06:21 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/06 18:48:10 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ static inline void cleanup_fd(int *fd)
 
 static inline const char *shield_upload(kr_strview_t *filepath)
 {
-	char *cstr = calloc(filepath->len + 1, sizeof(char));
+	char *cstr = (char *) calloc(filepath->len + 1, sizeof(char));
 	if (!cstr)
 		return "ERROR|Out of memory";
 	memcpy(cstr, filepath->ptr, filepath->len);
@@ -52,7 +52,11 @@ static inline const char *shield_upload(kr_strview_t *filepath)
 	int sock __attribute__((cleanup(cleanup_fd))) = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock < 0) return "ERROR|Could not create socket";
 
+#ifdef __cplusplus // i cant bother with this shit man
+	sockaddr_in addr{};
+#else
 	struct sockaddr_in addr = {0};
+#endif // __cplusplus
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(9999);
 	memcpy(&addr.sin_addr, h->h_addr, h->h_length);
