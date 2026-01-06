@@ -671,7 +671,7 @@ void server_run(daemon_server_t *that)
 				default:
 					break;
 			}
-			if (quit == true)
+			if (quit)
 				break;
 		}
 		if (quit)

