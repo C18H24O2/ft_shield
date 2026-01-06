@@ -240,11 +240,7 @@ void server_accept_new_client(daemon_server_t *that)
 			}
 			that->client_list[i].password_tries = 0;
 			that->client_list[i].index = i;
-#if MATT_MODE
-			that->client_list[i].state = CLIENT_CONNECTED;
-#else // !MATT_MODE
 			that->client_list[i].state = CLIENT_UNAUTHENTICATED;
-#endif // !MATT_MODE
 			time(&that->client_list[i].last_seen);
 			that->current_conn++;
 			return ;
@@ -346,7 +342,9 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 #if MATT_MODE
 	if (kr_strcmp(&client->in_buffer, "quit") == 0 || kr_strcmp(&client->in_buffer, "quit\n") == 0)
 		return (false);
-#else // !MATT_MODE
+	std::string input = std::string(client->in_buffer.ptr, client->in_buffer.len);
+	MLOG("User input: " + input);
+#endif // !MATT_MODE
 	if (client->state == CLIENT_UNAUTHENTICATED)
 	{
 		size_t len = kr_strcspn(&client->in_buffer, "\n");
@@ -357,6 +355,7 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 			client->state = CLIENT_CONNECTED;
 			time(&client->last_seen);
 		}
+#if !MATT_MODE
 		else
 		{
 			client->password_tries++;
@@ -368,10 +367,10 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 			else
 				kr_strappend(&client->out_buffer, "Invalid password\n" PASSWORD_PROMPT);
 		}
+#endif
 		kr_strclr(&client->in_buffer);
 		return true;
 	}
-#endif
 
 	// Here depending on what "mode" the client is in":
 	// Standard mode just interprets and looks for commands sent to the server
@@ -515,14 +514,12 @@ void server_receive_shell_data(daemon_server_t *that, size_t client_index)
 	client->pollfd->events |= POLLOUT;
 }
 
-void server_send_shell_data(daemon_server_t *that, size_t client_index)
+void server_send_shell_data(unused daemon_server_t *that, unused size_t client_index)
 {
-	(void)client_index;
-	(void)that;
 	return;
 }
 
-void server_client_check_shell(daemon_server_t *that)
+void server_client_check_shell(unused daemon_server_t *that)
 {
 	// Check which clients have had a shell opened,
 	// and check if the shell is now dead.

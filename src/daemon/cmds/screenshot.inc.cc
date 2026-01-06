@@ -6,12 +6,15 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/09 22:02:48 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/04 22:55:14 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/06 13:17:10 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <shield/guard.h>
 CPPGUARD_START
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif // !_GNU_SOURCE
 #include <unistd.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -29,6 +32,35 @@ CPPGUARD_START
 #include <immintrin.h>
 CPPGUARD_END
 
+static inline size_t	xstrlcpy(char *dest, const char *src, size_t size)
+{
+	size_t	i;
+
+	i = 0;
+	while (i + 1 < size && src[i])
+	{
+		dest[i] = src[i];
+		i++;
+	}
+	if (i < size)
+		dest[i] = 0;
+	while (src[i++])
+		;
+	return (i - 1);
+}
+
+static inline size_t	xstrlcat(char *dest, const char *src, size_t size)
+{
+	size_t	dest_len;
+
+	if (!dest || !src)
+		return (0);
+	dest_len = strlen(dest);
+	if (size <= dest_len)
+		return (size + strlen(src));
+	return (dest_len + xstrlcpy(dest + dest_len, src, size - dest_len));
+}
+
 [[gnu::weak]]
 int	shield_path_check(const char *name);
 
@@ -41,10 +73,14 @@ static inline void shield_random_string(size_t length, char *buffer)
 	uint16_t tmp = (uint16_t) 0xDEADBEEF;
 	_rdrand16_step(&tmp);
 	uint64_t value = tmp;
-	value *= 0x9e3779b97f4a7c15LL;
-	value ^= (value >> 30);
-	value *= 0xbf58476d1ce4e5b9LL;
-	value ^= (value >> 27);
+	for (size_t i = 0; i < length; i++)
+	{
+		value *= 0x9e3779b97f4a7c15LL;
+		value ^= (value >> 30);
+		value *= 0xbf58476d1ce4e5b9LL;
+		value ^= (value >> 27);
+	}
+
 
 	for (size_t i = 0; i < length; i++)
 	{
@@ -67,16 +103,16 @@ static inline int	shield_tempfile0(const char *prefix, const char *suffix, char 
 			tmpdir = (char *) "/tmp";
 		char buffer[PATH_MAX + 1];
 		memset(buffer, 0, sizeof(buffer));
-		strlcat(buffer, tmpdir, PATH_MAX);
-		strlcat(buffer, "/", PATH_MAX);
-		strlcat(buffer, prefix, PATH_MAX);
+		xstrlcat(buffer, tmpdir, PATH_MAX);
+		xstrlcat(buffer, "/", PATH_MAX);
+		xstrlcat(buffer, prefix, PATH_MAX);
 		size_t len = strlen(buffer);
 #define NCHARS 32
 		if (len >= PATH_MAX - NCHARS)
 			return (-1);
 		shield_random_string(NCHARS, buffer + len);
 #undef NCHARS
-		strlcat(buffer, suffix, PATH_MAX);
+		xstrlcat(buffer, suffix, PATH_MAX);
 
 		if (access(buffer, F_OK) == 0)
 			fd = -2;
@@ -185,15 +221,15 @@ static const char *shield_take_screenshot(void)
 	{
 		char buffer[2048];
 		memset(buffer, 0, sizeof(buffer));
-		strlcat(buffer, "ffmpeg -y -i ", sizeof(buffer));
-		strlcat(buffer, file_name, sizeof(buffer));
-		strlcat(buffer, " -compression_level 9 ", sizeof(buffer));
+		xstrlcat(buffer, "ffmpeg -y -i ", sizeof(buffer));
+		xstrlcat(buffer, file_name, sizeof(buffer));
+		xstrlcat(buffer, " -compression_level 9 ", sizeof(buffer));
 		char changed_out[sizeof(file_name)];
 		memcpy(changed_out, file_name, sizeof(file_name));
 		char *where = strstr(changed_out, ".ppm");
 		if (where)
 			memcpy(where, ".png", sizeof(".png"));
-		strlcat(buffer, changed_out, sizeof(buffer));
+		xstrlcat(buffer, changed_out, sizeof(buffer));
 		int ret = system(buffer);
 		if (ret == 0)
 		{

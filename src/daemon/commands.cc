@@ -4,10 +4,14 @@
 
 #define _GNU_SOURCE
 
+#include <shield/guard.h>
+CPPGUARD_START
 #include <termios.h>
 #include <pty.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdlib.h>
+CPPGUARD_END
 
 #include <shield/server.h>
 #include <shield/qio.h>
@@ -25,7 +29,7 @@ int shield_cmd_help(client_t *client, unused daemon_server_t *server, unused kr_
 		max_size = len > max_size ? len : max_size;
 	}
 	max_size += 2;
-	char space_buf[max_size + 1];
+	char *space_buf = (char *) malloc(max_size + 1);
 
 	for (int i = 0; commands[i].command != NULL; ++i)
 	{
@@ -33,14 +37,23 @@ int shield_cmd_help(client_t *client, unused daemon_server_t *server, unused kr_
 		size_t len = strlen(commands[i].usage);
 		if (len < max_size)
 		{
-			memset(space_buf, 0, sizeof(space_buf));
-			memset(space_buf, ' ', max_size - len);
-			kr_strappend(&client->out_buffer, space_buf);
+			if (space_buf)
+			{
+				memset(space_buf, 0, max_size + 1);
+				memset(space_buf, ' ', max_size - len);
+				kr_strappend(&client->out_buffer, space_buf);
+			}
+			else
+			{
+				for (size_t j = 0; j < max_size - len; ++j)
+					kr_strappend(&client->out_buffer, " ");
+			}
 		}
 
 		kr_strappend(&client->out_buffer, commands[i].description);
 		kr_strappend(&client->out_buffer, "\n");
 	}
+	free(space_buf);
 	return (0);
 }
 
@@ -63,7 +76,7 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, unused kr_strvie
 	if (pid == 0)
 	{
 		// server_cleanup(server); // this is probably a bad idea lol
-		char *argv[] = {"sh", "-i", NULL};
+		char *argv[] = {(char*)"sh", (char*)"-i", NULL};
 		char *envp[] = {NULL};
 		execve("/bin/sh", argv, envp);
 

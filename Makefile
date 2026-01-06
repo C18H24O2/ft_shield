@@ -24,16 +24,17 @@ USE_WW := 0
 DEBUG ?= 0
 BONUS ?= 0
 
-_ := $(shell bash -c 'if [ ! -f $(MAKE_DIR)/hasher3000 ]; then clang -Iinclude -msse4.2 -mrdrnd -DHASH_MAIN=1 -O3 -o $(MAKE_DIR)/hasher3000 src/hash.cc; fi')
-
 ifeq ($(PROJECT_TYPE), 1)
 CC := clang++
 else
 CC := clang
 endif
+
+_ := $(shell bash -c 'if [ ! -f $(MAKE_DIR)/hasher3000 ]; then $(CC) -Iinclude -msse4.2 -mrdrnd -DHASH_MAIN=1 -O3 -o $(MAKE_DIR)/hasher3000 src/hash.cc; fi')
+
 CFLAGS := -Wall -fcolor-diagnostics -Wextra -msse4.2 -mrdrnd -Wno-unused-command-line-argument -DSHIELD_PASSWORD=$(shell $(MAKE_DIR)/hasher3000 $(PASSWORD) 2>/dev/null)
 ifneq ($(USE_WARNINGS), 1)
-CFLAGS += -Werror
+# CFLAGS += -Werror
 endif
 SHIELD_PORT ?= 4242
 CFLAGS += -DMATT_MODE=$(PROJECT_TYPE) -DFT_SHIELD_PORT=$(SHIELD_PORT) -DFT_SHIELD_PORT_STRING=\"$(SHIELD_PORT)\"
