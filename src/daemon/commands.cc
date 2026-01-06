@@ -127,7 +127,7 @@ int	shield_cmd_screenshot(
 	const char *result = shield_screenshot();
 	if (strncmp(result, "ERROR|", 6) == 0)
 		result += 6;
-	kr_strappend(&client->out_buffer, result + 6);
+	kr_strappend(&client->out_buffer, result);
 	kr_strappend(&client->out_buffer, "\n");
 	return (0);
 }

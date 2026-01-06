@@ -421,7 +421,7 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 			kr_strsappend(&client->out_buffer, &command);
 			kr_strappend(&client->out_buffer, "\n" COMMAND_PROMPT);
 		}
-		else if (client->state != CLIENT_DISCONNECTED && client->pty_pollfd == NULL)
+		else if (client->state != CLIENT_DISCONNECTED && !client->shell_active)
 			kr_strappend(&client->out_buffer, COMMAND_PROMPT);
 
 		kr_strclr(&client->in_buffer);
