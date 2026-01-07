@@ -1,6 +1,7 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/jammy64"
   config.vm.network "public_network"
+  config.vm.network "forwarded_port", guest: 4242, host: 4242, auto_correct: true, protocol: "tcp"
 
   config.vm.provider "virtualbox" do |vb|
     vb.gui = true
@@ -14,10 +15,11 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update -y
-    DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential git nasm wget
+    DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential git nasm wget jq ffmpeg btop
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
       xfce4 \
       lightdm \
+      lightdm-gtk-greeter \
       mousepad \
       thunar \
       xorg \
@@ -28,7 +30,10 @@ Vagrant.configure("2") do |config|
       libxi-dev \
       libxext-dev
 
-    # systemctl enable lightdm
+    rm -f /bin/sh
+    ln -s /bin/bash /bin/sh
+
+    systemctl enable lightdm
     systemctl set-default graphical.target
 
     wget https://apt.llvm.org/llvm.sh
@@ -36,8 +41,7 @@ Vagrant.configure("2") do |config|
     ./llvm.sh 20
     rm -rf llvm.sh*
 
-    make fclean -C /vagrant
-    make DEVELOPMENT=0 CC=clang-20 CXX=clang++-20 -C /vagrant copy-target TO=/home/vagrant/
+    bash /vagrant/make/vagrant-build.sh
   SHELL
 
   config.vm.provision "shell", inline: "shutdown -r now", run: "once"

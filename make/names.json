@@ -38,5 +38,13 @@
   {
     "name": "kroussar",
     "description": "좋은 하루 보내세요!"
+  },
+  {
+    "name": "rusty",
+    "description": "Rusty is a web platform offering services easing students life and helping them define their professional and educational paths. It is also a means of continuous improvement, giving students a voice heard by the staff."
+  },
+  {
+    "name": "steam-server",
+    "description": "yo im gabe newell"
   }
 ]

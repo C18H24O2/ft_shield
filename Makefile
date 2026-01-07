@@ -24,12 +24,13 @@ USE_WW := 1
 DEBUG ?= 0
 BONUS ?= 0
 
+SYS_CC ?= clang
+SYS_CXX ?= clang++
+
 ifeq ($(PROJECT_TYPE), 1)
-CC := clang
-OG_CC := $(CC)
-CC := clang++
+CC := $(SYS_CXX)
 else
-CC := clang
+CC := $(SYS_CC)
 endif
 
 _ := $(shell bash -c 'if [ ! -f $(MAKE_DIR)/hasher3000 ]; then $(CC) -Iinclude -msse4.2 -mrdrnd -DHASH_MAIN=1 -O3 -o $(MAKE_DIR)/hasher3000 src/hash.cc; fi')
@@ -49,7 +50,7 @@ CFLAGS += -nostdlib -nostdinc -ffreestanding
 LDFLAGS += -nostdlib -nostartfiles -ffreestanding
 endif
 
-CXX := clang++
+CXX := $(SYS_CXX)
 CXXFLAGS := $(CFLAGS)
 CXXFLAGS += -std=c++23
 ifeq ($(PROJECT_TYPE), 0)
@@ -126,13 +127,12 @@ ft_shield MattDaemon: $(MAIN_DEPS)
 	$(LD) $(LDFLAGS) -o $@ $(LINK_DEPS) 
 ifeq ($(DEBUG), 0)
 	strip -xXs $@
-else
+endif
 ifeq ($(USE_WW), 1)
 	mv $@ $@.tmp
 	rm -f $@
 	$(WW_BIN) -p none -o $@ $@.tmp
 	rm -f $@.tmp
-endif
 endif
 
 shield:
@@ -163,7 +163,7 @@ $(LIBSP): $(LIBSP_DIR)/Makefile
 	$(MAKE) -C $(LIBSP_DIR) -j$(shell nproc)
 
 $(WW_BIN):
-	$(MAKE) -C $(WW_DIR) -j$(shell nproc) PEDANTIC=0 CC="$(OG_CC)"
+	$(MAKE) -C $(WW_DIR) -j$(shell nproc) PEDANTIC=0 CC="$(SYS_CC)"
 
 oclean:
 	rm -rf $(BUILD_DIR)
@@ -202,7 +202,7 @@ print-type:
 	@echo NAME: $(NAME)
 
 copy-target: $(NAME)
-	cp $(NAME) $(TO)
+	cp -f $(NAME) $(TO)
 
 compile_commands.json: oclean
 	bear -- $(MAKE) USE_WARNINGS=1 -j $(OBJS) 

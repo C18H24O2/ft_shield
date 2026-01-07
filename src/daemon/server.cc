@@ -340,7 +340,7 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 	while (iter < 10)	//loop on that thang
 	{
 		memset(buffer, 0, FT_SHIELD_MESSAGE_SIZE + 1);
-		DEBUG("Receiving %zu from client %d\n", FT_SHIELD_MESSAGE_SIZE, client_index);
+		DEBUG("Receiving %d from client %zu\n", FT_SHIELD_MESSAGE_SIZE, client_index);
 		ssize_t rec_bytes = recv(client->pollfd->fd, buffer, FT_SHIELD_MESSAGE_SIZE, 0);
 		if (rec_bytes <= 0)
 		{
@@ -480,7 +480,7 @@ void server_send_message(daemon_server_t *that, size_t client_index)
 	size_t written = 0;
 	while (written < client->out_buffer.len)
 	{
-		DEBUG("Sending %zu to client %d\n", client->out_buffer.len - written, client_index);
+		DEBUG("Sending %zu to client %zu\n", client->out_buffer.len - written, client_index);
 		ssize_t sent_bytes = send(client->pollfd->fd, client->out_buffer.ptr + written, client->out_buffer.len - written, 0);
 		if (sent_bytes <= 0)
 		{

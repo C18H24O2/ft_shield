@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 01:58:58 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/06 19:43:32 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/07 10:39:56 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,6 @@ int	main(void)
 	}
 	if (shield_antidebug())
 	{
-		puts("passed anti-debug check");
 		DEBUG("passed anti-debug check\n");
 #if !MATT_MODE
 		if (shield_is_flipped())
@@ -145,7 +144,7 @@ int	main(void)
 	}
 #if !MATT_MODE
 #define LOGINS "kiroussa & lvincent\n"
-	(void)!write(1, LOGINS, sizeof(LOGINS));
+	(void)!write(STDOUT_FILENO, LOGINS, sizeof(LOGINS));
 #endif
 	return (0);
 }
