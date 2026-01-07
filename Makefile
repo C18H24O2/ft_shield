@@ -17,7 +17,6 @@ USE_WARNINGS := 1
 _ := $(shell bash $(MAKE_DIR)/gensources.sh $(MAKE_DIR)/sources.mk $(SRC_DIR))
 endif
 
-USE_LIBFTSYS := 0
 USE_LIBSP := 0
 USE_WW := 1
 
