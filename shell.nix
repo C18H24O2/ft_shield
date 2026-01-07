@@ -20,6 +20,8 @@ in
       bear
       patchutils
 
+      utillinux.dev
+      utillinux.lib
       xorg.libX11.dev
       python313
 
