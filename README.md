@@ -9,6 +9,10 @@ To build either project, you can:
 - In an already cloned repo, run `make matt-daemon` or `make shield`
   - Note that trying to make the executables (`ft_shield` / `MattDaemon`) directly **will** fail, use the wrapper tasks instead.
 
+## To 42 staff
+
+If this triggered some kind of anti-cheating measure, hope we made you laugh for a sec.
+
 ## License
 
 This project is licensed under the [ISC License](./LICENSE).
