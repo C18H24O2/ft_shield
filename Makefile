@@ -25,6 +25,8 @@ DEBUG ?= 0
 BONUS ?= 0
 
 ifeq ($(PROJECT_TYPE), 1)
+CC := clang
+OG_CC := $(CC)
 CC := clang++
 else
 CC := clang
@@ -133,6 +135,9 @@ ifeq ($(USE_WW), 1)
 endif
 endif
 
+shield:
+	$(MAKE) -j$(shell nproc) PROJECT_TYPE=0 ft_shield
+
 matt-daemon:
 	$(MAKE) -j$(shell nproc) PROJECT_TYPE=1 MattDaemon
 
@@ -158,7 +163,7 @@ $(LIBSP): $(LIBSP_DIR)/Makefile
 	$(MAKE) -C $(LIBSP_DIR) -j$(shell nproc)
 
 $(WW_BIN):
-	$(MAKE) -C $(WW_DIR) -j$(shell nproc) PEDANTIC=0 CC="$(CC)"
+	$(MAKE) -C $(WW_DIR) -j$(shell nproc) PEDANTIC=0 CC="$(OG_CC)"
 
 oclean:
 	rm -rf $(BUILD_DIR)
@@ -202,4 +207,4 @@ copy-target: $(NAME)
 compile_commands.json: oclean
 	bear -- $(MAKE) USE_WARNINGS=1 -j $(OBJS) 
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re copy-target print-type vm oclean shield matt-daemon kill-daemon

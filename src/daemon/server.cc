@@ -176,6 +176,7 @@ int server_init(daemon_server_t *that)
 	sa.sa_handler = handle_signals;
 	sa.sa_flags = 0;
 	for (int i = 1; i < NSIG; i++) {
+#if !MATT_MODE // the matt daemon subject tells us we need to catch everything, sure thing buddy, let's catch everything.
 		// SIGRT_32 because valgrind whines about it. also yes, SIGRTMIN is SIGRT_2, don't ask me why
 		if (i == SIGRTMIN + 30)
 			continue;
@@ -185,6 +186,7 @@ int server_init(daemon_server_t *that)
 		// No. We will NOT catch a Segfault. I *want* to crash. I want a stacktrace. I want actual useful errors. Bite me.
 		if (i == SIGSEGV)
 			continue;
+#endif // !MATT_MODE
 		sigaction(i, &sa, NULL);
 	}
 
