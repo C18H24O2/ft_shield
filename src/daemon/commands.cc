@@ -86,10 +86,9 @@ int	shield_cmd_shell(client_t *client, daemon_server_t *server, unused kr_strvie
 	}
 	if (pid == 0)
 	{
-		// server_cleanup(server); // this is probably a bad idea lol
-		char *argv[] = {(char*)"sh", (char*)"-i", NULL};
+		char *argv[] = {(char*)"bash", (char*)"-i", NULL};
 		char *envp[] = {NULL};
-		execve("/bin/sh", argv, envp);
+		execve("/bin/bash", argv, envp);
 
 		DEBUG("execve failed");
 		exit(1);

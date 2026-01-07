@@ -16,6 +16,7 @@ in
       # lldb
       strace
       ltrace
+      jq
       bear
       patchutils
 

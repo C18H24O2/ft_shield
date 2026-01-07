@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/09 22:02:48 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/06 13:17:10 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/06 22:20:05 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ static inline int	shield_tempfile0(const char *prefix, const char *suffix, char 
 		{
 			fd = open(buffer, O_CREAT | O_EXCL | O_RDWR, 0644);
 			if (fd > 0)
-				strlcpy(file_name, buffer, PATH_MAX);
+				xstrlcpy(file_name, buffer, PATH_MAX);
 		}
 		// make sure to exit the scope to cleanup the stack from the buffer
 	}
@@ -185,7 +185,7 @@ static const char *shield_take_screenshot(void)
 	}
 	DEBUG("image: %p\n", image);
 
-	char file_name[PATH_MAX + 1];
+	static char file_name[PATH_MAX + 1];
 	memset(file_name, 0, sizeof(file_name));
 
 	int fd = shield_tempfile("screenshot", ".ppm", file_name);
@@ -238,7 +238,7 @@ static const char *shield_take_screenshot(void)
 		}
 	}
 	
-	return ("Success");
+	return (file_name);
 }
 
 // Thank you stackoverflow <3

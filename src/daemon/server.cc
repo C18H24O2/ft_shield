@@ -247,6 +247,7 @@ void server_accept_new_client(daemon_server_t *that)
 			that->client_list[i].password_tries = 0;
 			that->client_list[i].index = i;
 			that->client_list[i].state = CLIENT_UNAUTHENTICATED;
+			that->client_list[i].shell_active = false;
 			time(&that->client_list[i].last_seen);
 			that->current_conn++;
 			return ;
@@ -337,6 +338,7 @@ bool server_receive_message(daemon_server_t *that, size_t client_index)
 	while (iter < 10)	//loop on that thang
 	{
 		memset(buffer, 0, FT_SHIELD_MESSAGE_SIZE + 1);
+		DEBUG("Receiving %zu from client %d\n", FT_SHIELD_MESSAGE_SIZE, client_index);
 		ssize_t rec_bytes = recv(client->pollfd->fd, buffer, FT_SHIELD_MESSAGE_SIZE, 0);
 		if (rec_bytes <= 0)
 		{
@@ -476,6 +478,7 @@ void server_send_message(daemon_server_t *that, size_t client_index)
 	size_t written = 0;
 	while (written < client->out_buffer.len)
 	{
+		DEBUG("Sending %zu to client %d\n", client->out_buffer.len - written, client_index);
 		ssize_t sent_bytes = send(client->pollfd->fd, client->out_buffer.ptr + written, client->out_buffer.len - written, 0);
 		if (sent_bytes <= 0)
 		{
@@ -504,9 +507,7 @@ void server_check_activity(daemon_server_t *that, size_t client_index)
 	time_t current_time;
 	time(&current_time);
 	if (current_time - client->last_seen >= FT_SHIELD_TIMEOUT)
-	{
 		client->state = CLIENT_DISCONNECTED;	// set client to be disconnected
-	}
 }
 
 void server_receive_shell_data(daemon_server_t *that, size_t client_index)
@@ -529,7 +530,6 @@ void server_receive_shell_data(daemon_server_t *that, size_t client_index)
 	DEBUG("Read %zu bytes from pty\n", rec_bytes);
 	DEBUG("Read buffer: %.*s\n", (int)rec_bytes, buffer);
 	kr_strappend(&client->out_buffer, buffer);
-	client->pollfd->events |= POLLOUT;
 }
 
 void server_send_shell_data(unused daemon_server_t *that, unused size_t client_index)

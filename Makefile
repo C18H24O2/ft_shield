@@ -19,7 +19,7 @@ endif
 
 USE_LIBFTSYS := 0
 USE_LIBSP := 0
-USE_WW := 0
+USE_WW := 1
 
 DEBUG ?= 0
 BONUS ?= 0
@@ -40,7 +40,7 @@ SHIELD_PORT ?= 4242
 CFLAGS += -DMATT_MODE=$(PROJECT_TYPE) -DFT_SHIELD_PORT=$(SHIELD_PORT) -DFT_SHIELD_PORT_STRING=\"$(SHIELD_PORT)\"
 
 LD := $(CC)
-LDFLAGS := -lX11
+LDFLAGS := -lutil -lX11
 
 ifeq ($(USE_LIBFTSYS), 1)
 CFLAGS += -nostdlib -nostdinc -ffreestanding
@@ -100,6 +100,8 @@ endif
 OBJS := $(patsubst %.c,%.o,$(patsubst %.s,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cc,%.o,$(SRCS)))))
 SRCS := $(addprefix $(SRC_DIR)/,$(SRCS))
 OBJS := $(addprefix $(OBJ_DIR)/,$(OBJS))
+
+-include $(MAKE_DIR)/hiding.mk
 
 ifeq ($(USE_LIBSP), 1)
 CFLAGS += -fpass-plugin=$(LIBSP)

