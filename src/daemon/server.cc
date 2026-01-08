@@ -297,6 +297,7 @@ void server_clear_client(daemon_server_t *that, client_t *client)
 	client->pty_metadata = NULL;
 	client->last_seen = 0;
 
+	client->shell_active = false;
 	client->password_tries = 0;
 	
 	// clear but don't free them yet, we wouldn't want to have to re-allocate memory down the line now do we
