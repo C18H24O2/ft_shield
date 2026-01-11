@@ -6,7 +6,7 @@
 /*   By: lvincent <lvincent@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/23 03:06:32 by kiroussa          #+#    #+#             */
-/*   Updated: 2026/01/04 23:01:22 by kiroussa         ###   ########.fr       */
+/*   Updated: 2026/01/11 22:48:11 by kiroussa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ static inline int	shield_daemon_lock(void)
 
 	if (lock_fd < 0)
 		return (-2);
-	if (flock(lock_fd, LOCK_EX | LOCK_NB) != 0)
+	if (flock(lock_fd, LOCK_EX | LOCK_UN | LOCK_NB) != 0)
 	{
 		close(lock_fd);
 		return (-3);
